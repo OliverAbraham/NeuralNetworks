@@ -1,0 +1,29 @@
+﻿<Window x:Class="UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UI"
+        mc:Ignorable="d"
+        Title="Neural networks explorer" Height="450" Width="800">
+    <Grid Height="863" Width="1482">
+        <TextBox Name="textBoxStopIfAccuracyIs"    Height="26" Width="100" TabIndex="19" Margin="406,671,976,166" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextWrapping="Wrap" ></TextBox>
+        <Label   Name="label6"                     Height="45" Width="395" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="18" Margin="16,661,1071,157" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Stop when total accuracy is:</Label>
+        <TextBox Name="textBoxStopAfterIterations" Height="26" Width="100" TabIndex="17" Margin="406,619,976,218" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextWrapping="Wrap" ></TextBox>
+        <Label   Name="D"                          Height="45" Width="270" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="16" Margin="16,609,1196,209" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Training iterations:</Label>
+        <Button  Name="button1"                    Height="45" Width="117" TabIndex="15" Click="buttonCheck_Click" Margin="1192,773,173,45" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Check</Button>
+        <Button  Name="buttonLoadNetwork"          Height="45" Width="247" TabIndex="14" Click="buttonLoadNetwork_Click" Margin="903,773,332,45" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Load network</Button>
+        <Label   Name="labelClassification"        Height="91" Width="116" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="13" Margin="1266,494,100,278" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
+        <Label   Name="label5"                     Height="45" Width="132" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="12" Margin="1274,-5,76,823" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Results:</Label>
+        <Label   Name="labelClassicationResults"   Height="45" Width="54"  FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="11" Margin="1274,43,154,775" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
+        <Label   Name="label4"                     Height="45" Width="124" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="10" Margin="16,706,1342,112" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Status:</Label>
+        <Button  Name="buttonLoadTrainingData"     Height="44" Width="293" TabIndex="9" Click="buttonLoadTrainingData_Click" Margin="12,773,1177,46" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Load training data</Button>
+        <Label   Name="labelStatus"                Height="45" Width="54"  FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="8" Margin="158,706,1270,112" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
+        <Label   Name="label3"                     Height="45" Width="132" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="7" Margin="343,-6,1007,824" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Results:</Label>
+        <Label   Name="label2"                     Height="45" Width="265" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="6" Margin="600,-5,617,823" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Handwriting input:</Label>
+        <Label   Name="label1"                     Height="45" Width="228" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="5" Margin="16,-6,1238,824" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Training image:</Label>
+        <Label   Name="output_label"               Height="45" Width="54"  FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="3" Margin="343,42,1085,776" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
+        <Button  Name="save_button"                Height="45" Width="241" TabIndex="2" Click="buttonSaveNetwork_Click" Margin="624,772,617,46" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Save network</Button>
+        <Button  Name="train_button"               Height="45" Width="246" TabIndex="0" Click="train_button_Click" Margin="339,772,897,46" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Train network</Button>
+    </Grid>
+</Window>

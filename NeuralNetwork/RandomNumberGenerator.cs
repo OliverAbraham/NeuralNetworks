@@ -2,7 +2,7 @@
 
 namespace NeuralNetwork
 {
-    public static class RandomNumber
+    public static class RandomNumberGenerator
     {
         private static readonly RNGCryptoServiceProvider _generator = new RNGCryptoServiceProvider();
 

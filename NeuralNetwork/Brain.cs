@@ -2,12 +2,12 @@
 {
     public class Brain : ICloneable
     {
-        public string BrainStructureString;
-        public Stream BrainStructureStream;
-        public Neuron[][] AllLayers;
-        public Neuron[][] HiddenLayers;
-        public Neuron[] Inputs;
-        public Neuron[] Outputs;
+        public string BrainStructureString = "";
+        public Stream BrainStructureStream = null;
+        public Neuron[][] AllLayers = null;
+        public Neuron[][] HiddenLayers = null;
+        public Neuron[] Inputs = null;
+        public Neuron[] Outputs = null;
 
         private Func<float, float> activationFunction;
 
@@ -230,7 +230,7 @@
                     Neuron targetNeuron = AllLayers[iteration][iter]; // neuron, that gets outputs
                     int outputCount = AllLayers[iteration + 1].Length; // Amount of outputs
                     targetNeuron.OutputConnections = new Neuron[outputCount];
-                    targetNeuron.Bias = RandomNumber.Between(-10, 10);
+                    targetNeuron.Bias = RandomNumberGenerator.Between(-10, 10);
 
                     for (int i = 0; i < AllLayers[iteration + 1].Length; i++)
                     {
@@ -240,10 +240,10 @@
                         targetNeuron.OutputConnections[i] = outputNeuron;
 
                         outputNeuron.InputConnections[inputCount] = AllLayers[iteration][iter];
-                        outputNeuron.Weight[inputCount] = RandomNumber.Between(min, max) / 100.0F;
+                        outputNeuron.Weight[inputCount] = RandomNumberGenerator.Between(min, max) / 100.0F;
 
                         if (addDisconnectedWeights)
-                            outputNeuron.Weight[inputCount] *= RandomNumber.Between(-1, 1);
+                            outputNeuron.Weight[inputCount] *= RandomNumberGenerator.Between(-1, 1);
 
                         outputNeuron.InputConnectionsCount++;
                     }

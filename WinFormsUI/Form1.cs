@@ -21,7 +21,11 @@ namespace WinFormsUI
             InitializeComponent();
             InitDrawPad();
             _network = new Network();
-            textBoxTrainingSpeed.Text = _network._trainingSpeed.ToString();
+            textBoxNeuronsInInputLayer.Text   = _network._neuronsInInputLayer.ToString();
+            textBoxHiddenLayers.Text          = _network._hiddenLayersCount.ToString();
+            textBoxNeuronsInHiddenLayers.Text = _network._neuronsInHiddenLayers.ToString();
+            textBoxNeuronsInOutputLayer.Text  = _network._neuronsInOutputLayer.ToString();
+            textBoxTrainingSpeed.Text         = _network._trainingSpeed.ToString();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -121,27 +125,43 @@ namespace WinFormsUI
             _network._stopAfterIterations = 0;
             _network._stopAfterAccurracy = 0;
 
-            var iterationsEntered = false;
-            if (int.TryParse(textBoxStopAfterIterations.Text, out int iterations))
-                iterationsEntered = true;
+            var hiddenLayersEntered = false;
+            if (int.TryParse(textBoxHiddenLayers.Text, out int hiddenLayers))
+                hiddenLayersEntered = true;
 
-            var accurracyEntered = false;
+            var neuronsInHiddenLayersEntered = false;
+            if (int.TryParse(textBoxNeuronsInHiddenLayers.Text, out int neuronsInHiddenLayers))
+                neuronsInHiddenLayersEntered = true;
+
+            var stopAfterIterationsEntered = false;
+            if (int.TryParse(textBoxStopAfterIterations.Text, out int iterations))
+                stopAfterIterationsEntered = true;
+
+            var stopAfterAccurracyEntered = false;
             if (int.TryParse(textBoxStopIfAccuracyIs.Text, out int accuracy))
-                accurracyEntered = true;
+                stopAfterAccurracyEntered = true;
 
             var trainingSpeedEntered = false;
             if (float.TryParse(textBoxTrainingSpeed.Text, out float trainingSpeed))
                 trainingSpeedEntered = true;
 
-            if (!ValidateEntries(iterationsEntered, iterations, accurracyEntered, accuracy, trainingSpeedEntered, trainingSpeed, out string messages))
+            if (!ValidateEntries(
+                hiddenLayersEntered, hiddenLayers,
+                neuronsInHiddenLayersEntered, neuronsInHiddenLayers,
+                stopAfterIterationsEntered, iterations,
+                stopAfterAccurracyEntered, accuracy, 
+                trainingSpeedEntered, trainingSpeed, 
+                out string messages))
             {
                 MessageBox.Show(messages);
                 return;
             }
 
-            _network._stopAfterIterations = iterations;
-            _network._stopAfterAccurracy = accuracy;
-            if (trainingSpeedEntered) _network._trainingSpeed = trainingSpeed;
+            if (hiddenLayersEntered)          _network._hiddenLayersCount     = hiddenLayers;
+            if (neuronsInHiddenLayersEntered) _network._neuronsInHiddenLayers = neuronsInHiddenLayers;
+            if (stopAfterIterationsEntered)   _network._stopAfterIterations   = iterations;
+            if (stopAfterAccurracyEntered)    _network._stopAfterAccurracy    = accuracy;
+            if (trainingSpeedEntered)         _network._trainingSpeed         = trainingSpeed;
 
             SetButtonsForTrainingProgress();
 
@@ -149,6 +169,8 @@ namespace WinFormsUI
         }
 
         private bool ValidateEntries(
+            bool hiddenLayersEntered, int hiddenLayers,
+            bool neuronsInHiddenLayersEntered, int neuronsInHiddenLayers,
             bool iterationsEntered, int iterations,
             bool accurracyEntered, int accuracy,
             bool trainingSpeedEntered, float trainingSpeed,
@@ -163,6 +185,17 @@ namespace WinFormsUI
             if (iterationsEntered && accurracyEntered)
             {
                 messages = "please enter either iterations or accuracy, not both!";
+                return false;
+            }
+
+            if (hiddenLayersEntered && hiddenLayers <= 0)
+            {
+                messages = "please enter the number of hidden layers as a positive number!";
+                return false;
+            }
+            if (neuronsInHiddenLayersEntered && neuronsInHiddenLayers <= 0)
+            {
+                messages = "please enter the number of hidden layers as a positive number!";
                 return false;
             }
             if (iterationsEntered && iterations <= 0)
@@ -181,17 +214,6 @@ namespace WinFormsUI
                 return false;
             }
             return true;
-        }
-
-        private void SetButtonsForTrainingProgress()
-        {
-            textBoxStopAfterIterations.Enabled = false;
-            textBoxStopIfAccuracyIs.Enabled = false;
-            textBoxTrainingSpeed.Enabled = false;
-            buttonCancelTraining.Enabled = true;
-            buttonStartTraining.Enabled = false;
-            buttonLoadTrainingData.Enabled = false;
-            labelStatus.Text = "Training ...";
         }
 
         private void onTrainingProgress()
@@ -240,16 +262,31 @@ namespace WinFormsUI
             SetButtonsAfterTraining();
         }
 
+        private void SetButtonsForTrainingProgress()
+        {
+            textBoxNeuronsInHiddenLayers.Enabled = false;
+            textBoxHiddenLayers         .Enabled = false;
+            textBoxStopAfterIterations  .Enabled = false;
+            textBoxStopIfAccuracyIs     .Enabled = false;
+            textBoxTrainingSpeed        .Enabled = false;
+            buttonCancelTraining        .Enabled = true;
+            buttonStartTraining         .Enabled = false;
+            buttonLoadTrainingData      .Enabled = false;
+            labelStatus.Text = "Training ...";
+        }
+
         private void SetButtonsAfterTraining()
         {
-            _drawPad.Enabled = true;
             _drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
-            textBoxStopAfterIterations.Enabled = true;
-            textBoxStopIfAccuracyIs.Enabled = true;
-            textBoxTrainingSpeed.Enabled = true;
-            buttonCancelTraining.Enabled = false;
-            buttonStartTraining.Enabled = true;
-            buttonLoadTrainingData.Enabled = true;
+            _drawPad                    .Enabled = true;
+            textBoxNeuronsInHiddenLayers.Enabled = true;
+            textBoxHiddenLayers         .Enabled = true;
+            textBoxStopAfterIterations  .Enabled = true;
+            textBoxStopIfAccuracyIs     .Enabled = true;
+            textBoxTrainingSpeed        .Enabled = true;
+            buttonCancelTraining        .Enabled = false;
+            buttonStartTraining         .Enabled = true;
+            buttonLoadTrainingData      .Enabled = true;
         }
         #endregion
         #region ------------- Loading/saving ------------------------------------------------------
@@ -304,7 +341,7 @@ namespace WinFormsUI
             for (int i = 0; i < classification.Length; i++)
                 results += i + ": " + classification[i].ToString("0.00") + "\n";
 
-            labelClassification.Text = NeuralNetwork.Training.OutputNumber(classification).ToString();
+            labelClassification.Text = _network.GetOutputClassifcation(classification).ToString();
             labelClassificationResults.Text = results;
             _drawPad.ResetImage();
         }

@@ -49,6 +49,14 @@
             buttonCancelTraining = new Button();
             label6 = new Label();
             textBoxTrainingSpeed = new TextBox();
+            labelNeuronsInOutputLayer = new Label();
+            textBoxNeuronsInOutputLayer = new TextBox();
+            labelNeuronsInHiddenLayer = new Label();
+            textBoxNeuronsInHiddenLayers = new TextBox();
+            labelHiddenLayers = new Label();
+            textBoxHiddenLayers = new TextBox();
+            labelNeuronsInInputLayer = new Label();
+            textBoxNeuronsInInputLayer = new TextBox();
             SuspendLayout();
             // 
             // buttonStartTraining
@@ -215,7 +223,7 @@
             // 
             labelIterations.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             labelIterations.AutoSize = true;
-            labelIterations.Location = new Point(21, 759);
+            labelIterations.Location = new Point(21, 776);
             labelIterations.Margin = new Padding(5, 0, 5, 0);
             labelIterations.Name = "labelIterations";
             labelIterations.Size = new Size(172, 25);
@@ -225,7 +233,7 @@
             // textBoxStopAfterIterations
             // 
             textBoxStopAfterIterations.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            textBoxStopAfterIterations.Location = new Point(308, 756);
+            textBoxStopAfterIterations.Location = new Point(308, 773);
             textBoxStopAfterIterations.Margin = new Padding(4);
             textBoxStopAfterIterations.Name = "textBoxStopAfterIterations";
             textBoxStopAfterIterations.Size = new Size(132, 30);
@@ -235,7 +243,7 @@
             // 
             labelStopWhen.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             labelStopWhen.AutoSize = true;
-            labelStopWhen.Location = new Point(21, 808);
+            labelStopWhen.Location = new Point(21, 818);
             labelStopWhen.Margin = new Padding(5, 0, 5, 0);
             labelStopWhen.Name = "labelStopWhen";
             labelStopWhen.Size = new Size(255, 25);
@@ -245,7 +253,7 @@
             // textBoxStopIfAccuracyIs
             // 
             textBoxStopIfAccuracyIs.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            textBoxStopIfAccuracyIs.Location = new Point(308, 805);
+            textBoxStopIfAccuracyIs.Location = new Point(308, 815);
             textBoxStopIfAccuracyIs.Margin = new Padding(4);
             textBoxStopIfAccuracyIs.Name = "textBoxStopIfAccuracyIs";
             textBoxStopIfAccuracyIs.Size = new Size(132, 30);
@@ -284,11 +292,105 @@
             textBoxTrainingSpeed.Size = new Size(132, 30);
             textBoxTrainingSpeed.TabIndex = 22;
             // 
+            // labelNeuronsInOutputLayer
+            // 
+            labelNeuronsInOutputLayer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelNeuronsInOutputLayer.AutoSize = true;
+            labelNeuronsInOutputLayer.Location = new Point(21, 735);
+            labelNeuronsInOutputLayer.Margin = new Padding(5, 0, 5, 0);
+            labelNeuronsInOutputLayer.Name = "labelNeuronsInOutputLayer";
+            labelNeuronsInOutputLayer.Size = new Size(218, 25);
+            labelNeuronsInOutputLayer.TabIndex = 23;
+            labelNeuronsInOutputLayer.Text = "Neurons in output layer:";
+            // 
+            // textBoxNeuronsInOutputLayer
+            // 
+            textBoxNeuronsInOutputLayer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            textBoxNeuronsInOutputLayer.Enabled = false;
+            textBoxNeuronsInOutputLayer.Location = new Point(308, 732);
+            textBoxNeuronsInOutputLayer.Margin = new Padding(4);
+            textBoxNeuronsInOutputLayer.Name = "textBoxNeuronsInOutputLayer";
+            textBoxNeuronsInOutputLayer.Size = new Size(132, 30);
+            textBoxNeuronsInOutputLayer.TabIndex = 24;
+            textBoxNeuronsInOutputLayer.Text = "10";
+            // 
+            // labelNeuronsInHiddenLayer
+            // 
+            labelNeuronsInHiddenLayer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelNeuronsInHiddenLayer.AutoSize = true;
+            labelNeuronsInHiddenLayer.Location = new Point(21, 696);
+            labelNeuronsInHiddenLayer.Margin = new Padding(5, 0, 5, 0);
+            labelNeuronsInHiddenLayer.Name = "labelNeuronsInHiddenLayer";
+            labelNeuronsInHiddenLayer.Size = new Size(223, 25);
+            labelNeuronsInHiddenLayer.TabIndex = 25;
+            labelNeuronsInHiddenLayer.Text = "Neurons in hidden layer:";
+            // 
+            // textBoxNeuronsInHiddenLayer
+            // 
+            textBoxNeuronsInHiddenLayers.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            textBoxNeuronsInHiddenLayers.Location = new Point(308, 693);
+            textBoxNeuronsInHiddenLayers.Margin = new Padding(4);
+            textBoxNeuronsInHiddenLayers.Name = "textBoxNeuronsInHiddenLayer";
+            textBoxNeuronsInHiddenLayers.Size = new Size(132, 30);
+            textBoxNeuronsInHiddenLayers.TabIndex = 26;
+            textBoxNeuronsInHiddenLayers.Text = "16";
+            // 
+            // labelHiddenLayers
+            // 
+            labelHiddenLayers.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelHiddenLayers.AutoSize = true;
+            labelHiddenLayers.Location = new Point(21, 657);
+            labelHiddenLayers.Margin = new Padding(5, 0, 5, 0);
+            labelHiddenLayers.Name = "labelHiddenLayers";
+            labelHiddenLayers.Size = new Size(137, 25);
+            labelHiddenLayers.TabIndex = 27;
+            labelHiddenLayers.Text = "Hidden layers:";
+            // 
+            // textBoxHiddenLayers
+            // 
+            textBoxHiddenLayers.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            textBoxHiddenLayers.Location = new Point(308, 654);
+            textBoxHiddenLayers.Margin = new Padding(4);
+            textBoxHiddenLayers.Name = "textBoxHiddenLayers";
+            textBoxHiddenLayers.Size = new Size(132, 30);
+            textBoxHiddenLayers.TabIndex = 28;
+            textBoxHiddenLayers.Text = "2";
+            // 
+            // labelNeuronsInInputLayer
+            // 
+            labelNeuronsInInputLayer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelNeuronsInInputLayer.AutoSize = true;
+            labelNeuronsInInputLayer.Location = new Point(21, 618);
+            labelNeuronsInInputLayer.Margin = new Padding(5, 0, 5, 0);
+            labelNeuronsInInputLayer.Name = "labelNeuronsInInputLayer";
+            labelNeuronsInInputLayer.Size = new Size(206, 25);
+            labelNeuronsInInputLayer.TabIndex = 29;
+            labelNeuronsInInputLayer.Text = "Neurons in input layer:";
+            // 
+            // textBoxNeuronsInInputLayer
+            // 
+            textBoxNeuronsInInputLayer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            textBoxNeuronsInInputLayer.Enabled = false;
+            textBoxNeuronsInInputLayer.Location = new Point(308, 615);
+            textBoxNeuronsInInputLayer.Margin = new Padding(4);
+            textBoxNeuronsInInputLayer.Name = "textBoxNeuronsInInputLayer";
+            textBoxNeuronsInInputLayer.Size = new Size(132, 30);
+            textBoxNeuronsInInputLayer.TabIndex = 30;
+            textBoxNeuronsInInputLayer.Text = "784";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(12F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1825, 1079);
+            Controls.Add(textBoxNeuronsInInputLayer);
+            Controls.Add(labelNeuronsInInputLayer);
+            Controls.Add(textBoxHiddenLayers);
+            Controls.Add(labelHiddenLayers);
+            Controls.Add(textBoxNeuronsInHiddenLayers);
+            Controls.Add(labelNeuronsInHiddenLayer);
+            Controls.Add(textBoxNeuronsInOutputLayer);
+            Controls.Add(labelNeuronsInOutputLayer);
             Controls.Add(textBoxTrainingSpeed);
             Controls.Add(label6);
             Controls.Add(buttonCancelTraining);
@@ -346,5 +448,13 @@
         private Button buttonCancelTraining;
         private Label label6;
         private TextBox textBoxTrainingSpeed;
+        private Label labelNeuronsInOutputLayer;
+        private TextBox textBoxNeuronsInOutputLayer;
+        private Label labelNeuronsInHiddenLayer;
+        private TextBox textBoxNeuronsInHiddenLayers;
+        private Label labelHiddenLayers;
+        private TextBox textBoxHiddenLayers;
+        private Label labelNeuronsInInputLayer;
+        private TextBox textBoxNeuronsInInputLayer;
     }
 }

@@ -1,5 +1,6 @@
 using HandwritingRecognition;
 using NeuralNetwork;
+using static NeuralNetwork.Network;
 using Network = NeuralNetwork.Network;
 
 namespace WinFormsUI
@@ -21,11 +22,11 @@ namespace WinFormsUI
             InitializeComponent();
             InitDrawPad();
             _network = new Network();
-            textBoxNeuronsInInputLayer.Text   = _network._neuronsInInputLayer.ToString();
-            textBoxHiddenLayers.Text          = _network._hiddenLayersCount.ToString();
-            textBoxNeuronsInHiddenLayers.Text = _network._neuronsInHiddenLayers.ToString();
-            textBoxNeuronsInOutputLayer.Text  = _network._neuronsInOutputLayer.ToString();
-            textBoxTrainingSpeed.Text         = _network._trainingSpeed.ToString();
+            textBoxNeuronsInInputLayer.Text   = _network.NeuronsInInputLayer.ToString();
+            textBoxHiddenLayers.Text          = _network.HiddenLayersCount.ToString();
+            textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
+            textBoxNeuronsInOutputLayer.Text  = _network.NeuronsInOutputLayer.ToString();
+            textBoxTrainingSpeed.Text         = _network.TrainingSpeed.ToString();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -113,7 +114,7 @@ namespace WinFormsUI
                 delegate ()
                 {
                     labelStatus.Text = "Training data loaded.";
-                    textBoxStopAfterIterations.Text = _network._trainingIterations.ToString();
+                    textBoxStopAfterIterations.Text = "60000";
                     buttonStartTraining.Enabled = true;
                     save_button.Enabled = true;
                 }));
@@ -122,8 +123,8 @@ namespace WinFormsUI
         #region ------------- Training ------------------------------------------------------------
         private void buttonStartTraining_Click(object sender, EventArgs e)
         {
-            _network._stopAfterIterations = 0;
-            _network._stopAfterAccurracy = 0;
+            _network.StopAfterIterations = 0;
+            _network.StopAfterAccurracy = 0;
 
             var hiddenLayersEntered = false;
             if (int.TryParse(textBoxHiddenLayers.Text, out int hiddenLayers))
@@ -157,11 +158,11 @@ namespace WinFormsUI
                 return;
             }
 
-            if (hiddenLayersEntered)          _network._hiddenLayersCount     = hiddenLayers;
-            if (neuronsInHiddenLayersEntered) _network._neuronsInHiddenLayers = neuronsInHiddenLayers;
-            if (stopAfterIterationsEntered)   _network._stopAfterIterations   = iterations;
-            if (stopAfterAccurracyEntered)    _network._stopAfterAccurracy    = accuracy;
-            if (trainingSpeedEntered)         _network._trainingSpeed         = trainingSpeed;
+            if (hiddenLayersEntered)          _network.HiddenLayersCount     = hiddenLayers;
+            if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
+            if (stopAfterIterationsEntered)   _network.StopAfterIterations   = iterations;
+            if (stopAfterAccurracyEntered)    _network.StopAfterAccurracy    = accuracy;
+            if (trainingSpeedEntered)         _network.TrainingSpeed         = trainingSpeed;
 
             SetButtonsForTrainingProgress();
 
@@ -216,22 +217,16 @@ namespace WinFormsUI
             return true;
         }
 
-        private void onTrainingProgress()
+        private void onTrainingProgress(float[] currentOutput, string statusText, byte[] currentTrainingImage)
         {
             Invoke(new MethodInvoker(
                 delegate ()
                 {
-                    _currentBitmap = BitmapConverter.ByteToBitmap(_network._currentImage, _network._imageSize, _network._imageSize);
-                    Invoke(new MethodInvoker(TrainingProgressUiUpdate));
-                    labelStatus.Text = _network._currentStatus;
+                    _currentBitmap = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.ImageSize, _network.ImageSize);
+                    labelStatus.Text = statusText;
+                    ShowCurrentImageClassification(currentOutput);
+                    Refresh();
                 }));
-        }
-
-        private void TrainingProgressUiUpdate()
-        {
-            labelStatus.Text = _network._currentStatus;
-            ShowCurrentImageClassification(_network._currentOutput);
-            Refresh();
         }
 
         public void ShowCurrentImageClassification(float[] output)
@@ -244,13 +239,12 @@ namespace WinFormsUI
             labelTrainingClassification.Text = result;
         }
 
-        private void onTrainingFinished()
+        private void onTrainingFinished(string statusText)
         {
             Invoke(new MethodInvoker(
                 delegate ()
                 {
-                    _currentBitmap = BitmapConverter.ByteToBitmap(_network._currentImage, _network._imageSize, _network._imageSize);
-                    labelStatus.Text = _network._currentStatus;
+                    labelStatus.Text = statusText;
                     SetButtonsAfterTraining();
                 }));
         }
@@ -258,7 +252,7 @@ namespace WinFormsUI
         private void buttonCancelTraining_Click(object sender, EventArgs e)
         {
             _network.CancelTraining();
-            labelStatus.Text = _network._currentStatus;
+            labelStatus.Text = "training cancelled";
             SetButtonsAfterTraining();
         }
 
@@ -279,8 +273,8 @@ namespace WinFormsUI
         {
             _drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
             _drawPad                    .Enabled = true;
-            textBoxNeuronsInHiddenLayers.Enabled = true;
-            textBoxHiddenLayers         .Enabled = true;
+            //textBoxNeuronsInHiddenLayers.Enabled = true;
+            //textBoxHiddenLayers         .Enabled = true;
             textBoxStopAfterIterations  .Enabled = true;
             textBoxStopIfAccuracyIs     .Enabled = true;
             textBoxTrainingSpeed        .Enabled = true;
@@ -292,14 +286,14 @@ namespace WinFormsUI
         #region ------------- Loading/saving ------------------------------------------------------
         private void buttonSaveNetwork_Click(object sender, EventArgs e)
         {
-            _network.SaveBrainStructure(_trainingDataDirectory);
+            _network.SaveNetwork(_trainingDataDirectory);
             labelStatus.Text = "Network saved.";
             _drawPad.Enabled = true;
         }
 
         private void buttonLoadNetwork_Click(object sender, EventArgs e)
         {
-            _network.LoadBrainStructure(_trainingDataDirectory);
+            _network.LoadNetwork(_trainingDataDirectory);
             labelStatus.Text = "Network loaded.";
             _drawPad.Enabled = true;
             _drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
@@ -313,21 +307,21 @@ namespace WinFormsUI
 
         private void buttonCheck_Click(object sender, EventArgs e)
         {
-            var handwrittenImage = GetHandWrittenImage();
-            if (handwrittenImage is null)
+            var inputValues = GetHandWrittenImage();
+            if (inputValues is null)
                 return;
 
             _currentBitmap = Bitmap.FromFile("img.bmp") as Bitmap;
             Refresh();
 
-            var classification = _network._brain.Think(handwrittenImage, Neuron.ReLU);
+            var outputNeurons = _network.Think(inputValues);
 
-            DisplayClassification(classification);
+            DisplayClassification(outputNeurons);
         }
 
         private float[] GetHandWrittenImage()
         {
-            _drawPad.RescaleImage(_network._imageSize, _network._imageSize);
+            _drawPad.RescaleImage(_network.ImageSize, _network.ImageSize);
             _drawPad.CenterImage();
             _drawPad.Image.Save(@"img.png", System.Drawing.Imaging.ImageFormat.Png);
             _drawPad.Image.Save(@"img.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
@@ -335,13 +329,13 @@ namespace WinFormsUI
             return handwrittenImage;
         }
 
-        private void DisplayClassification(float[] classification)
+        private void DisplayClassification(float[] outputNeurons)
         {
             var results = "";
-            for (int i = 0; i < classification.Length; i++)
-                results += i + ": " + classification[i].ToString("0.00") + "\n";
+            for (int i = 0; i < outputNeurons.Length; i++)
+                results += i + ": " + outputNeurons[i].ToString("0.00") + "\n";
 
-            labelClassification.Text = _network.GetOutputClassifcation(classification).ToString();
+            labelClassification.Text = _network.GetOutputClassification(outputNeurons).ToString();
             labelClassificationResults.Text = results;
             _drawPad.ResetImage();
         }

@@ -26,16 +26,13 @@ namespace UI
         #region ------------- Init ----------------------------------------------------------------
         public MainWindow()
         {
-			_layoutManager = new WindowLayoutManager(window:this, key:"MainWindow");
+            _layoutManager = new WindowLayoutManager(window: this, key: "MainWindow");
             InitializeComponent();
             _drawPad = new DrawPad(HandwritingCanvas);
             InitStructureDisplay();
             _network = new Network();
-            textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer.ToString();
-            textBoxHiddenLayers         .Text = _network.HiddenLayersCount.ToString();
-            textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
-            textBoxNeuronsInOutputLayer .Text = _network.NeuronsInOutputLayer.ToString();
-            textBoxTrainingSpeed        .Text = _network.TrainingSpeed.ToString();
+            StructureInit();
+            TrainingInit();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -66,6 +63,28 @@ namespace UI
             //_drawPad.IsEnabled = false;
         }
         #endregion
+        #region ------------- Structure -----------------------------------------------------------
+        private void StructureInit()
+        {
+            textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer.ToString();
+            textBoxHiddenLayers         .Text = _network.HiddenLayersCount.ToString();
+            textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
+            textBoxNeuronsInOutputLayer .Text = _network.NeuronsInOutputLayer.ToString();
+        }
+        #endregion
+        #region ------------- Training data -------------------------------------------------------
+        private void TrainingInit()
+        {
+            textBoxTrainingSpeed.Text = _network.TrainingSpeed.ToString();
+        }
+        #endregion
+        #region ------------- Training ------------------------------------------------------------
+        #endregion
+        #region ------------- Test ----------------------------------------------------------------
+        #endregion
+
+
+
         #region ------------- Training image update -----------------------------------------------
         //private void MainForm_Resize(object sender, EventArgs e)
         //{
@@ -446,6 +465,11 @@ namespace UI
         #endregion
 
         private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void buttonStopTraining_Click(object sender, RoutedEventArgs e)
         {
 
         }

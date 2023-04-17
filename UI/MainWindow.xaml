@@ -48,7 +48,7 @@
                 <Label   Name="output_label"         Margin="224,233,0,0"       Height="45"  Width="32"  HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
                 <Label   Name="labelTrainingClassification" Margin="231,479,0,0"       Height="45"  Width="32"  HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
 
-                <Button  Name="buttonLoadTrainingData"     Height="44" Margin="35,564,0,0" VerticalAlignment="Top" Click="buttonLoadTrainingData_Click" HorizontalAlignment="Left" Width="202" >Load training data</Button>
+                <Button  Name="buttonLoadTrainingData"     Height="44" Margin="35,571,0,0" VerticalAlignment="Top" Click="buttonLoadTrainingData_Click" HorizontalAlignment="Left" Width="202" >Load training data</Button>
             </Grid>
         </GroupBox>
 
@@ -67,8 +67,8 @@
                 <Label   Name="labelStatusTxt"                  Margin="22,124,0,0"     Width="124" HorizontalAlignment="Left" Height="45" VerticalAlignment="Top" >Status:</Label>
                 <Label   Name="labelStatus"                     Margin="30,169,0,0"     Height="45"  Width="54"  HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
 
-                <Button  Name="buttonStartTraining"             Margin="38,564,0,0"  Height="45" VerticalAlignment="Top" Click="buttonStartTraining_Click" HorizontalAlignment="Left" Width="120" Content="Start" />
-                <Button  Name="buttonStopTraining"              Margin="190,564,0,0" Height="45" VerticalAlignment="Top" Click="buttonStartTraining_Click" HorizontalAlignment="Left" Width="117" Content="Stop" />
+                <Button  Name="buttonStartTraining"             Margin="38,570,0,0"  Height="45" VerticalAlignment="Top" Click="buttonStartTraining_Click" HorizontalAlignment="Left" Width="120" Content="Start" />
+                <Button  Name="buttonStopTraining"              Margin="190,570,0,0" Height="45" VerticalAlignment="Top" Click="buttonStopTraining_Click"  HorizontalAlignment="Left" Width="118" Content="Stop" />
             </Grid>
         </GroupBox>
 

@@ -10,7 +10,8 @@ namespace WinFormsUI
         #region ------------- Fields --------------------------------------------------------------
         private string _trainingDataDirectory = "./TrainingData";
         private Network _network;
-        private Bitmap _currentBitmap = null;
+        private Bitmap _currentTrainingImage = null;
+        private Bitmap _currentNetworkWeights = null;
         private DrawPad _drawPad;
         #endregion
 
@@ -20,13 +21,14 @@ namespace WinFormsUI
         public Form1()
         {
             InitializeComponent();
-            InitDrawPad();
+            InitHandwritingDrawPad();
+            InitStructureDisplay();
             _network = new Network();
-            textBoxNeuronsInInputLayer.Text   = _network.NeuronsInInputLayer.ToString();
-            textBoxHiddenLayers.Text          = _network.HiddenLayersCount.ToString();
+            textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer  .ToString();
+            textBoxHiddenLayers         .Text = _network.HiddenLayersCount    .ToString();
             textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
-            textBoxNeuronsInOutputLayer.Text  = _network.NeuronsInOutputLayer.ToString();
-            textBoxTrainingSpeed.Text         = _network.TrainingSpeed.ToString();
+            textBoxNeuronsInOutputLayer .Text = _network.NeuronsInOutputLayer .ToString();
+            textBoxTrainingSpeed        .Text = _network.TrainingSpeed        .ToString();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -44,22 +46,15 @@ namespace WinFormsUI
 
         #region ------------- Implementation ------------------------------------------------------
         #region ------------- Init ----------------------------------------------------------------
-        private void InitDrawPad()
+        private void InitStructureDisplay()
         {
-            _drawPad = new DrawPad();
-            _drawPad.Location = new Point(600, 50);
-            _drawPad.Size = new Size(600, 600);
-            _drawPad.ImageSize = new Size(600, 600);
-            _drawPad.LineWidth = 25;
-            _drawPad.BackColor = Color.Black;
-            Controls.Add(_drawPad);
         }
 
         private void SetInitialButtonStates()
         {
             buttonStartTraining.Enabled = false;
             save_button.Enabled = false;
-            buttonCancelTraining.Enabled = false;
+            buttonStopTraining.Enabled = false;
             _drawPad.Enabled = false;
         }
         #endregion
@@ -71,13 +66,22 @@ namespace WinFormsUI
 
         private void DrawCurrentTrainingImage(Graphics graphics)
         {
-            if (_currentBitmap is null)
-                return;
             graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            Rectangle rec = new Rectangle(50, 50, 200, 200);
-            graphics.DrawImage(_currentBitmap, rec);
-            _currentBitmap.Dispose();
-            _currentBitmap = null;
+            if (_currentTrainingImage is not null)
+            {
+                var rectangle = new Rectangle(50, 50, 200, 200);
+                graphics.DrawImage(_currentTrainingImage, rectangle);
+                _currentTrainingImage.Dispose();
+                _currentTrainingImage = null;
+
+            }
+            if (_currentNetworkWeights is not null)
+            {
+                var rectangle = new Rectangle(660, 50, 200, 200);
+                graphics.DrawImage(_currentNetworkWeights, rectangle);
+                _currentNetworkWeights.Dispose();
+                _currentNetworkWeights = null;
+            }
         }
 
         private void MainForm_Resize(object sender, EventArgs e)
@@ -121,11 +125,24 @@ namespace WinFormsUI
         }
         #endregion
         #region ------------- Training ------------------------------------------------------------
+        private void buttonResetNetwork_Click(object sender, EventArgs e)
+        {
+            var hiddenLayersEntered = false;
+            if (int.TryParse(textBoxHiddenLayers.Text, out int hiddenLayers))
+                hiddenLayersEntered = true;
+
+            var neuronsInHiddenLayersEntered = false;
+            if (int.TryParse(textBoxNeuronsInHiddenLayers.Text, out int neuronsInHiddenLayers))
+                neuronsInHiddenLayersEntered = true;
+
+            if (hiddenLayersEntered) _network.HiddenLayersCount = hiddenLayers;
+            if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
+
+            _network.Initialize();
+        }
+
         private void buttonStartTraining_Click(object sender, EventArgs e)
         {
-            _network.StopAfterIterations = 0;
-            _network.StopAfterAccurracy = 0;
-
             var hiddenLayersEntered = false;
             if (int.TryParse(textBoxHiddenLayers.Text, out int hiddenLayers))
                 hiddenLayersEntered = true;
@@ -150,19 +167,21 @@ namespace WinFormsUI
                 hiddenLayersEntered, hiddenLayers,
                 neuronsInHiddenLayersEntered, neuronsInHiddenLayers,
                 stopAfterIterationsEntered, iterations,
-                stopAfterAccurracyEntered, accuracy, 
-                trainingSpeedEntered, trainingSpeed, 
+                stopAfterAccurracyEntered, accuracy,
+                trainingSpeedEntered, trainingSpeed,
                 out string messages))
             {
                 MessageBox.Show(messages);
                 return;
             }
 
-            if (hiddenLayersEntered)          _network.HiddenLayersCount     = hiddenLayers;
+            _network.StopAfterIterations = 0;
+            _network.StopAfterAccurracy = 0;
+            if (hiddenLayersEntered) _network.HiddenLayersCount = hiddenLayers;
             if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
-            if (stopAfterIterationsEntered)   _network.StopAfterIterations   = iterations;
-            if (stopAfterAccurracyEntered)    _network.StopAfterAccurracy    = accuracy;
-            if (trainingSpeedEntered)         _network.TrainingSpeed         = trainingSpeed;
+            if (stopAfterIterationsEntered) _network.StopAfterIterations = iterations;
+            if (stopAfterAccurracyEntered) _network.StopAfterAccurracy = accuracy;
+            if (trainingSpeedEntered) _network.TrainingSpeed = trainingSpeed;
 
             SetButtonsForTrainingProgress();
 
@@ -222,7 +241,7 @@ namespace WinFormsUI
             Invoke(new MethodInvoker(
                 delegate ()
                 {
-                    _currentBitmap = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.ImageSize, _network.ImageSize);
+                    _currentTrainingImage = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.ImageSize, _network.ImageSize);
                     labelStatus.Text = statusText;
                     ShowCurrentImageClassification(currentOutput);
                     Refresh();
@@ -259,28 +278,28 @@ namespace WinFormsUI
         private void SetButtonsForTrainingProgress()
         {
             textBoxNeuronsInHiddenLayers.Enabled = false;
-            textBoxHiddenLayers         .Enabled = false;
-            textBoxStopAfterIterations  .Enabled = false;
-            textBoxStopIfAccuracyIs     .Enabled = false;
-            textBoxTrainingSpeed        .Enabled = false;
-            buttonCancelTraining        .Enabled = true;
-            buttonStartTraining         .Enabled = false;
-            buttonLoadTrainingData      .Enabled = false;
+            textBoxHiddenLayers.Enabled = false;
+            textBoxStopAfterIterations.Enabled = false;
+            textBoxStopIfAccuracyIs.Enabled = false;
+            textBoxTrainingSpeed.Enabled = false;
+            buttonStopTraining.Enabled = true;
+            buttonStartTraining.Enabled = false;
+            buttonLoadTrainingData.Enabled = false;
             labelStatus.Text = "Training ...";
         }
 
         private void SetButtonsAfterTraining()
         {
             _drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
-            _drawPad                    .Enabled = true;
+            _drawPad.Enabled = true;
             //textBoxNeuronsInHiddenLayers.Enabled = true;
             //textBoxHiddenLayers         .Enabled = true;
-            textBoxStopAfterIterations  .Enabled = true;
-            textBoxStopIfAccuracyIs     .Enabled = true;
-            textBoxTrainingSpeed        .Enabled = true;
-            buttonCancelTraining        .Enabled = false;
-            buttonStartTraining         .Enabled = true;
-            buttonLoadTrainingData      .Enabled = true;
+            textBoxStopAfterIterations.Enabled = true;
+            textBoxStopIfAccuracyIs.Enabled = true;
+            textBoxTrainingSpeed.Enabled = true;
+            buttonStopTraining.Enabled = false;
+            buttonStartTraining.Enabled = true;
+            buttonLoadTrainingData.Enabled = true;
         }
         #endregion
         #region ------------- Loading/saving ------------------------------------------------------
@@ -300,6 +319,17 @@ namespace WinFormsUI
         }
         #endregion
         #region ------------- Checking handwritten image ------------------------------------------
+        private void InitHandwritingDrawPad()
+        {
+            _drawPad = new DrawPad();
+            _drawPad.Location = new Point(labelHandwritingInput.Left, 50);
+            _drawPad.Size = new Size(600, 600);
+            _drawPad.ImageSize = new Size(600, 600);
+            _drawPad.LineWidth = 25;
+            _drawPad.BackColor = Color.Black;
+            Controls.Add(_drawPad);
+        }
+
         private void OnUserHasDrawnAnImage()
         {
             buttonCheck_Click(null, null);
@@ -311,7 +341,7 @@ namespace WinFormsUI
             if (inputValues is null)
                 return;
 
-            _currentBitmap = Bitmap.FromFile("img.bmp") as Bitmap;
+            _currentTrainingImage = Bitmap.FromFile("img.bmp") as Bitmap;
             Refresh();
 
             var outputNeurons = _network.Think(inputValues);

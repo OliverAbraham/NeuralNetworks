@@ -103,12 +103,16 @@
             return true;
         }
 
+        public void Initialize()
+        {
+            _brain = new Brain(NeuronsInInputLayer, NeuronsInOutputLayer, HiddenLayersCount, NeuronsInHiddenLayers, 
+                -0.5F, 0.5F, false, Neuron.ReLU);
+        }
+
         public void StartTraining(TrainingProgressHandler onProgress, TrainingFinishedHandler onFinished)
         {
             if (_brain is null)
-            {
-                _brain = new Brain(NeuronsInInputLayer, NeuronsInOutputLayer, HiddenLayersCount, NeuronsInHiddenLayers, -0.5F, 0.5F, false, Neuron.ReLU);
-            }
+                Initialize();
 
             var callbacks = new Callbacks(onProgress, onFinished);
 

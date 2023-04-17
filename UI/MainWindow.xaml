@@ -5,25 +5,83 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UI"
         mc:Ignorable="d"
-        Title="Neural networks explorer" Height="450" Width="800">
-    <Grid Height="863" Width="1482">
-        <TextBox Name="textBoxStopIfAccuracyIs"    Height="26" Width="100" TabIndex="19" Margin="406,671,976,166" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextWrapping="Wrap" ></TextBox>
-        <Label   Name="label6"                     Height="45" Width="395" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="18" Margin="16,661,1071,157" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Stop when total accuracy is:</Label>
-        <TextBox Name="textBoxStopAfterIterations" Height="26" Width="100" TabIndex="17" Margin="406,619,976,218" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextWrapping="Wrap" ></TextBox>
-        <Label   Name="D"                          Height="45" Width="270" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="16" Margin="16,609,1196,209" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Training iterations:</Label>
-        <Button  Name="button1"                    Height="45" Width="117" TabIndex="15" Click="buttonCheck_Click" Margin="1192,773,173,45" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Check</Button>
-        <Button  Name="buttonLoadNetwork"          Height="45" Width="247" TabIndex="14" Click="buttonLoadNetwork_Click" Margin="903,773,332,45" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Load network</Button>
-        <Label   Name="labelClassification"        Height="91" Width="116" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="13" Margin="1266,494,100,278" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
-        <Label   Name="label5"                     Height="45" Width="132" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="12" Margin="1274,-5,76,823" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Results:</Label>
-        <Label   Name="labelClassicationResults"   Height="45" Width="54"  FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="11" Margin="1274,43,154,775" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
-        <Label   Name="label4"                     Height="45" Width="124" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="10" Margin="16,706,1342,112" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Status:</Label>
-        <Button  Name="buttonLoadTrainingData"     Height="44" Width="293" TabIndex="9" Click="buttonLoadTrainingData_Click" Margin="12,773,1177,46" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Load training data</Button>
-        <Label   Name="labelStatus"                Height="45" Width="54"  FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="8" Margin="158,706,1270,112" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
-        <Label   Name="label3"                     Height="45" Width="132" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="7" Margin="343,-6,1007,824" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Results:</Label>
-        <Label   Name="label2"                     Height="45" Width="265" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="6" Margin="600,-5,617,823" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Handwriting input:</Label>
-        <Label   Name="label1"                     Height="45" Width="228" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="5" Margin="16,-6,1238,824" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Training image:</Label>
-        <Label   Name="output_label"               Height="45" Width="54"  FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="3" Margin="343,42,1085,776" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
-        <Button  Name="save_button"                Height="45" Width="241" TabIndex="2" Click="buttonSaveNetwork_Click" Margin="624,772,617,46" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Save network</Button>
-        <Button  Name="train_button"               Height="45" Width="246" TabIndex="0" Click="train_button_Click" Margin="339,772,897,46" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Train network</Button>
+        Title="Neural networks explorer" Height="786" Width="1862" FontSize="16" Background="WhiteSmoke" ResizeMode="NoResize"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+    <Grid>
+        <GroupBox Header="Network" Margin="40,35,0,0" HorizontalAlignment="Left" Width="401" Height="682" VerticalAlignment="Top" Background="#FFE2E9EF">
+            <Grid>
+                <Label Content="Neurons in input layer"             Margin="22,16,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxNeuronsInInputLayer"          Margin="232,20,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label Content="Hidden layers"                      Margin="22,46,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxHiddenLayers"                 Margin="232,50,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label Content="Neurons in hidden layer"            Margin="22,75,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxNeuronsInHiddenLayers"        Margin="232,80,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label Content="Neurons in output layer"            Margin="22,106,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxNeuronsInOutputLayer"         Margin="232,110,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label   Name="labelStructure"                      Margin="24,195,0,0"       Height="43" VerticalAlignment="Top" HorizontalAlignment="Left" Width="132" Content="Structure:" />
+                <Canvas  Name="canvasStructure"                     Margin="0,238,0,167"   Height="300" HorizontalAlignment="Center" Width="339" Background="#FFD3D8DD"/>
+
+                <Button  Name="buttonSaveNetwork"  Content="Save"   Margin="32,568,0,0"  Height="45"  Width="96"       HorizontalAlignment="Left" VerticalAlignment="Top" Click="buttonSaveNetwork_Click" />
+                <Button  Name="buttonLoadNetwork"  Content="Load"   Margin="152,568,0,0" Height="45"  Width="96"       HorizontalAlignment="Left" VerticalAlignment="Top" Click="buttonLoadNetwork_Click" />
+                <Button  Name="ResetNetwork"       Content="Reset"  Margin="265,568,0,0"  VerticalAlignment="Top" Width="98" HorizontalAlignment="Left" Click="Button_Click" Height="45"/>
+            </Grid>
+        </GroupBox>
+
+
+        <GroupBox Header="Training data" Margin="488,36,0,0" HorizontalAlignment="Left" Width="317" Height="681" VerticalAlignment="Top" Background="#FFE2E9EF">
+            <Grid>
+                <Label  Content="Image size"         Margin="22,16,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxImageSize"     Margin="158,20,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label  Content="Image count"        Margin="22,46,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxImageCount"    Margin="158,50,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label   Content="Training image:"   Margin="22,191,0,0"        Height="42" Width="228" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Image   Name="CurrentTrainingImage" Margin="22,238,0,0"        Height="200" Width="200" HorizontalAlignment="Left"  VerticalAlignment="Top" OpacityMask="#FFCBF4EB"/>
+
+                <Label   Content="Results:"          Margin="224,185,0,0"       Height="43" VerticalAlignment="Top" HorizontalAlignment="Left" Width="78" />
+                <Label   Name="output_label"         Margin="224,233,0,0"       Height="45"  Width="32"  HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
+                <Label   Name="labelTrainingClassification" Margin="231,479,0,0"       Height="45"  Width="32"  HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
+
+                <Button  Name="buttonLoadTrainingData"     Height="44" Margin="35,564,0,0" VerticalAlignment="Top" Click="buttonLoadTrainingData_Click" HorizontalAlignment="Left" Width="202" >Load training data</Button>
+            </Grid>
+        </GroupBox>
+
+
+        <GroupBox Header="Training" Margin="894,33,0,0" HorizontalAlignment="Left" Width="393" Height="684" VerticalAlignment="Top" Background="#FFE2E9EF">
+            <Grid>
+                <Label  Content="Neurons in input layer"        Margin="22,16,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxStopAfterIterations"      Margin="232,20,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label  Content="Stop if accuracy is"           Margin="22,46,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxStopIfAccuracyIs"         Margin="232,50,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label  Content="Training speed"                Margin="22,76,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxTrainingSpeed"            Margin="232,80,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+
+                <Label   Name="labelStatusTxt"                  Margin="22,124,0,0"     Width="124" HorizontalAlignment="Left" Height="45" VerticalAlignment="Top" >Status:</Label>
+                <Label   Name="labelStatus"                     Margin="30,169,0,0"     Height="45"  Width="54"  HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
+
+                <Button  Name="buttonStartTraining"             Margin="38,564,0,0"  Height="45" VerticalAlignment="Top" Click="buttonStartTraining_Click" HorizontalAlignment="Left" Width="120" Content="Start" />
+                <Button  Name="buttonStopTraining"              Margin="190,564,0,0" Height="45" VerticalAlignment="Top" Click="buttonStartTraining_Click" HorizontalAlignment="Left" Width="117" Content="Stop" />
+            </Grid>
+        </GroupBox>
+
+
+        <GroupBox Header="Test" Margin="1343,33,0,0" HorizontalAlignment="Left" Width="472" Height="684" VerticalAlignment="Top" Background="#FFE2E9EF">
+            <Grid>
+                <Label   Name="labelHandwritingCanvas"      Margin="30,33,0,0"       Height="43" Width="265"  HorizontalAlignment="Left" VerticalAlignment="Top" >Handwriting input:</Label>
+                <Canvas  Name="HandwritingCanvas"           Margin="30,84,0,0"       Height="300" Width="300"  HorizontalAlignment="Left"  VerticalAlignment="Top" Background="#FFD3D8DD" MouseLeave="Handwriting_MouseLeave"/>
+
+                <Label   Name="labelClassicationTxt"        Margin="365,32,0,0"      Height="43" Width="71" VerticalAlignment="Top" HorizontalAlignment="Left" >Results:</Label>
+                <Label   Name="labelClassicationResults"    Margin="374,80,0,0"      Height="45" Width="54"   HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
+                <Label   Name="labelClassification"         Margin="0,0,222,164" Height="91"  Width="116" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
+            </Grid>
+        </GroupBox>
     </Grid>
 </Window>

@@ -8,7 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Abraham.WPFWindowLayoutManager" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NeuralNetwork\NeuralNetwork.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="DrawPad.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>

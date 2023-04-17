@@ -24,11 +24,11 @@ namespace WinFormsUI
             InitHandwritingDrawPad();
             InitStructureDisplay();
             _network = new Network();
-            textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer  .ToString();
-            textBoxHiddenLayers         .Text = _network.HiddenLayersCount    .ToString();
+            textBoxNeuronsInInputLayer.Text = _network.NeuronsInInputLayer.ToString();
+            textBoxHiddenLayers.Text = _network.HiddenLayersCount.ToString();
             textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
-            textBoxNeuronsInOutputLayer .Text = _network.NeuronsInOutputLayer .ToString();
-            textBoxTrainingSpeed        .Text = _network.TrainingSpeed        .ToString();
+            textBoxNeuronsInOutputLayer.Text = _network.NeuronsInOutputLayer.ToString();
+            textBoxTrainingSpeed.Text = _network.TrainingSpeed.ToString();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -66,22 +66,25 @@ namespace WinFormsUI
 
         private void DrawCurrentTrainingImage(Graphics graphics)
         {
-            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            if (_currentTrainingImage is not null)
-            {
-                var rectangle = new Rectangle(50, 50, 200, 200);
-                graphics.DrawImage(_currentTrainingImage, rectangle);
-                _currentTrainingImage.Dispose();
-                _currentTrainingImage = null;
+            //if (_currentTrainingImage is not null)
+            //    this.currentTrainingImage.Image = _currentTrainingImage.Clone() as Bitmap;
 
-            }
-            if (_currentNetworkWeights is not null)
-            {
-                var rectangle = new Rectangle(660, 50, 200, 200);
-                graphics.DrawImage(_currentNetworkWeights, rectangle);
-                _currentNetworkWeights.Dispose();
-                _currentNetworkWeights = null;
-            }
+            //graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            //if (_currentTrainingImage is not null)
+            //{
+            //    var rectangle = new Rectangle(50, 50, 200, 200);
+            //    graphics.DrawImage(_currentTrainingImage, rectangle);
+            //    _currentTrainingImage.Dispose();
+            //    _currentTrainingImage = null;
+            //}
+
+            //if (_currentNetworkWeights is not null)
+            //{
+            //    var rectangle = new Rectangle(660, 50, 200, 200);
+            //    graphics.DrawImage(_currentNetworkWeights, rectangle);
+            //    _currentNetworkWeights.Dispose();
+            //    _currentNetworkWeights = null;
+            //}
         }
 
         private void MainForm_Resize(object sender, EventArgs e)
@@ -242,6 +245,7 @@ namespace WinFormsUI
                 delegate ()
                 {
                     _currentTrainingImage = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.ImageSize, _network.ImageSize);
+                    this.currentTrainingImage.Image = _currentTrainingImage;
                     labelStatus.Text = statusText;
                     ShowCurrentImageClassification(currentOutput);
                     Refresh();
@@ -342,7 +346,9 @@ namespace WinFormsUI
                 return;
 
             _currentTrainingImage = Bitmap.FromFile("img.bmp") as Bitmap;
-            Refresh();
+            this.currentTrainingImage.Image = _currentTrainingImage.Clone() as Bitmap;
+            _currentTrainingImage = null;
+            //Refresh();
 
             var outputNeurons = _network.Think(inputValues);
 

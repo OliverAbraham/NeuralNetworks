@@ -60,6 +60,8 @@
             label7 = new Label();
             label8 = new Label();
             label9 = new Label();
+            currentTrainingImage = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)currentTrainingImage).BeginInit();
             SuspendLayout();
             // 
             // buttonStartTraining
@@ -92,7 +94,7 @@
             // 
             labelTrainingClassification.AutoSize = true;
             labelTrainingClassification.Font = new Font("Microsoft Sans Serif", 15F, FontStyle.Regular, GraphicsUnit.Point);
-            labelTrainingClassification.Location = new Point(457, 71);
+            labelTrainingClassification.Location = new Point(269, 71);
             labelTrainingClassification.Margin = new Padding(5, 0, 5, 0);
             labelTrainingClassification.Name = "labelTrainingClassification";
             labelTrainingClassification.Size = new Size(45, 36);
@@ -122,7 +124,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(457, 11);
+            label3.Location = new Point(269, 11);
             label3.Margin = new Padding(5, 0, 5, 0);
             label3.Name = "label3";
             label3.Size = new Size(72, 25);
@@ -415,11 +417,21 @@
             label9.TabIndex = 34;
             label9.Text = "Network:";
             // 
+            // currentTrainingImage
+            // 
+            currentTrainingImage.Location = new Point(21, 53);
+            currentTrainingImage.Name = "currentTrainingImage";
+            currentTrainingImage.Size = new Size(200, 200);
+            currentTrainingImage.SizeMode = PictureBoxSizeMode.StretchImage;
+            currentTrainingImage.TabIndex = 35;
+            currentTrainingImage.TabStop = false;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(12F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(2251, 1079);
+            Controls.Add(currentTrainingImage);
             Controls.Add(label9);
             Controls.Add(label8);
             Controls.Add(label7);
@@ -461,6 +473,7 @@
             Load += MainForm_Load;
             Paint += MainForm_Paint;
             Resize += MainForm_Resize;
+            ((System.ComponentModel.ISupportInitialize)currentTrainingImage).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -499,5 +512,6 @@
         private Label label7;
         private Label label8;
         private Label label9;
+        private PictureBox currentTrainingImage;
     }
 }

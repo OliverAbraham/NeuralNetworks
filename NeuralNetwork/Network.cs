@@ -22,14 +22,20 @@
 
 
         #region ------------- Properties ----------------------------------------------------------
-        public int      ImageSize             { get; private set; } = 28;
-        public int      NeuronsInInputLayer   { get; private set; } = 28 * 28;
-        public int      HiddenLayersCount     { get; set; } = 3;
-        public int      NeuronsInHiddenLayers { get; set; } = 16;
-        public int      NeuronsInOutputLayer  { get; private set; } = 10;
-        public float    TrainingSpeed         { get; set; } = 0.0005F;
-        public int      StopAfterIterations   { get; set; }
-        public int      StopAfterAccurracy    { get; set; }
+        // training data
+        public int      TrainingImageSize      { get; private set; } = 0;
+        public int      TrainingImageCount     { get; private set; } = 0;
+                                               
+        // Network structure                   
+        public int      NeuronsInInputLayer    { get; set; } = 28 * 28;
+        public int      HiddenLayersCount      { get; set; } = 3;
+        public int      NeuronsInHiddenLayers  { get; set; } = 16;
+        public int      NeuronsInOutputLayer   { get; set; } = 10;
+                                               
+        // Training                            
+        public float    TrainingSpeed          { get; set; } = 0.0005F;
+        public int      StopAfterIterations    { get; set; }
+        public int      StopAfterAccurracy     { get; set; }
         #endregion
 
 
@@ -38,7 +44,6 @@
         private Brain    _brain;
         
         // training data
-        private int      _numberOfTrainingImages;
         private byte[][] _trainingImages;
         private byte[]   _trainingLabels;
         
@@ -85,9 +90,10 @@
             {
                 //if (_loadingInProgress)
                 //{
-                    _numberOfTrainingImages = 60000;
-                    _trainingImages = MnistTrainingDataLoader.LoadImageFile(Path.Combine(trainingDataDirectory, trainingFiles[0]), _numberOfTrainingImages);
-                    _trainingLabels = MnistTrainingDataLoader.LoadLabelFile(Path.Combine(trainingDataDirectory, trainingFiles[1]), _numberOfTrainingImages);
+                    TrainingImageCount = 60000;
+                    TrainingImageSize = 28;
+                    _trainingImages = MnistTrainingDataLoader.LoadImageFile(Path.Combine(trainingDataDirectory, trainingFiles[0]), TrainingImageCount);
+                    _trainingLabels = MnistTrainingDataLoader.LoadLabelFile(Path.Combine(trainingDataDirectory, trainingFiles[1]), TrainingImageCount);
                 //}
                 //else
                 //{
@@ -101,6 +107,11 @@
             }
 
             return true;
+        }
+
+        public byte[] GetTrainingImageById(int id)
+        {
+            return _trainingImages[id % TrainingImageCount];
         }
 
         public void Initialize()
@@ -185,8 +196,8 @@
             _trainingInProgress = true;
             while (_trainingInProgress)
             {
-                var currentTrainingImage = _trainingImages[iteration % _numberOfTrainingImages];
-                var currentTrainingLabel = _trainingLabels[iteration % _numberOfTrainingImages];
+                var currentTrainingImage = _trainingImages[iteration % TrainingImageCount];
+                var currentTrainingLabel = _trainingLabels[iteration % TrainingImageCount];
 
                 float[] output = _brain.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage), Neuron.ReLU);
                 var outputNum = GetOutputClassification(output);

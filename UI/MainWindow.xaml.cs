@@ -31,8 +31,10 @@ namespace UI
             _drawPad = new DrawPad(HandwritingCanvas);
             InitStructureDisplay();
             _network = new Network();
-            StructureInit();
+            TrainingDataInit();
             TrainingInit();
+            StructureInit();
+            TestInit();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -63,45 +65,12 @@ namespace UI
             //_drawPad.IsEnabled = false;
         }
         #endregion
-        #region ------------- Structure -----------------------------------------------------------
-        private void StructureInit()
-        {
-            textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer.ToString();
-            textBoxHiddenLayers         .Text = _network.HiddenLayersCount.ToString();
-            textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
-            textBoxNeuronsInOutputLayer .Text = _network.NeuronsInOutputLayer.ToString();
-        }
-        #endregion
         #region ------------- Training data -------------------------------------------------------
-        private void TrainingInit()
+        private void TrainingDataInit()
         {
-            textBoxTrainingSpeed.Text = _network.TrainingSpeed.ToString();
         }
-        #endregion
-        #region ------------- Training ------------------------------------------------------------
-        #endregion
-        #region ------------- Test ----------------------------------------------------------------
-        #endregion
 
-
-
-        #region ------------- Training image update -----------------------------------------------
-        //private void MainForm_Resize(object sender, EventArgs e)
-        //{
-        //    if (_drawPad is null)
-        //        return;
-        //    int padsize = Height;
-        //    _drawPad.Size = new Size(padsize, padsize);
-
-        //    if (WindowState == FormWindowState.Minimized)
-        //    {
-        //        FormBorderStyle = FormBorderStyle.None;
-        //        WindowState = FormWindowState.Maximized;
-        //    }
-        //}
-        #endregion
-        #region ------------- Training data -------------------------------------------------------
-        private void buttonLoadTrainingData_Click(object sender, EventArgs e)
+        private void buttonLoadTrainingData_Click(object sender, RoutedEventArgs e)
         {
             string messages = "";
             var success = _network.StartLoadingTrainingData(_trainingDataDirectory, OnLoadFinished, ref messages);
@@ -110,23 +79,90 @@ namespace UI
                 MessageBox.Show(messages);
                 return;
             }
-            labelStatus.Content = "loading training data...";
-            //Refresh();
+            SetStatusBeforeLoading();
         }
 
         private void OnLoadFinished()
         {
-//            Invoke(new MethodInvoker(
-//                delegate ()
-//                {
-//                    labelStatus.Content = "Training data loaded.";
-//                    textBoxStopAfterIterations.Content = "60000";
-//                    buttonStartTraining.IsEnabled = true;
-//                    save_button.IsEnabled = true;
-//                }));
+            Dispatcher.Invoke(() =>
+            {
+                SetFieldsInTrainingDataBoxAfterLoad();
+                SetStatusAfterLoad();
+                InitNetworkStructureAfterLoad();
+                InitTrainingAfterLoad();
+            });
+        }
+
+        private void SetFieldsInTrainingDataBoxAfterLoad()
+        {
+            textBoxImageSize.Text = $"{_network.TrainingImageSize} x {_network.TrainingImageSize}";
+            textBoxImageSize.IsEnabled = false;
+            textBoxImageCount.Text = $"{_network.TrainingImageCount}";
+            textBoxImageCount.IsEnabled = false;
+
+            sliderTrainingImage.Minimum = 0;
+            sliderTrainingImage.Maximum = _network.TrainingImageCount - 1;
+            CurrentTrainingImage.Source = CreateImageFromBytes(_network.GetTrainingImageById(0));
+        }
+
+        private void SetStatusBeforeLoading()
+        {
+            labelStatus.Content = "loading training data...";
+        }
+
+        private void SetStatusAfterLoad()
+        {
+            labelStatus.Content = "Training data loaded.";
+        }
+
+        private void sliderTrainingImage_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            int imageIndex = Convert.ToInt32(sliderTrainingImage.Value);
+            CurrentTrainingImage.Source = CreateImageFromBytes(_network.GetTrainingImageById(imageIndex));
+            CurrentTrainingImageNumber.Content = imageIndex.ToString();
+        }
+
+        private BitmapSource CreateImageFromBytes(byte[] bytes)
+        {
+            PixelFormat pf = PixelFormats.Gray8; // means one byte per pixel
+            int width = 28;
+            int height = 28;
+            int rawStride = (width * pf.BitsPerPixel + 7) / 8;
+            var bitmapSource = BitmapSource.Create(width, height, 96, 96, pf, null, bytes, rawStride);
+            return bitmapSource;
         }
         #endregion
+        #region ------------- Structure -----------------------------------------------------------
+        private void StructureInit()
+        {
+        }
+
+        private void InitNetworkStructureAfterLoad()
+        {
+            _network.NeuronsInInputLayer   = _network.TrainingImageSize * _network.TrainingImageSize;
+            _network.NeuronsInHiddenLayers = 16;
+            _network.HiddenLayersCount     = 3;
+            _network.NeuronsInOutputLayer  = 10;
+            _network.Initialize();
+
+            textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer  .ToString();
+            textBoxHiddenLayers         .Text = _network.HiddenLayersCount    .ToString();
+            textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
+            textBoxNeuronsInOutputLayer .Text = _network.NeuronsInOutputLayer .ToString();
+
+            DrawStructure();
+        }
+
+        private void DrawStructure()
+        {
+        }
+
+        #endregion
         #region ------------- Training ------------------------------------------------------------
+        private void TrainingInit()
+        {
+            textBoxTrainingSpeed.Text = _network.TrainingSpeed.ToString();
+        }
 
         private void buttonCheck_Click(object sender, RoutedEventArgs e)
         {
@@ -134,11 +170,6 @@ namespace UI
         }
 
         private void buttonLoadNetwork_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void buttonLoadTrainingData_Click(object sender, RoutedEventArgs e)
         {
 
         }
@@ -152,9 +183,20 @@ namespace UI
         {
 
         }
-
-
-
+        #endregion
+        #region ------------- Test ----------------------------------------------------------------
+        private void TestInit()
+        {
+        }
+        #endregion
+        #region ------------- Training ------------------------------------------------------------
+        private void InitTrainingAfterLoad()
+        {
+            textBoxNeuronsInInputLayer.Text = _network.NeuronsInInputLayer.ToString();
+            textBoxStopAfterIterations.Text = "60000";
+            buttonStartTraining.IsEnabled = true;
+            buttonSaveNetwork.IsEnabled = true;
+        }
 
         private void buttonResetNetwork_Click(object sender, EventArgs e)
         {
@@ -166,7 +208,7 @@ namespace UI
             if (int.TryParse(textBoxNeuronsInHiddenLayers.Text, out int neuronsInHiddenLayers))
                 neuronsInHiddenLayersEntered = true;
 
-            if (hiddenLayersEntered) _network.HiddenLayersCount = hiddenLayers;
+            if (hiddenLayersEntered         ) _network.HiddenLayersCount     = hiddenLayers;
             if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
 
             _network.Initialize();
@@ -269,15 +311,13 @@ namespace UI
 
         private void onTrainingProgress(float[] currentOutput, string statusText, byte[] currentTrainingImage)
         {
-//            Invoke(new MethodInvoker(
-//                delegate ()
-//                {
-//                    _currentTrainingImage = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.ImageSize, _network.ImageSize);
-//                    this.currentTrainingImage.Image = _currentTrainingImage;
-//                    labelStatus.Text = statusText;
-//                    ShowCurrentImageClassification(currentOutput);
-//                    Refresh();
-//                }));
+            Dispatcher.Invoke(() =>
+            {
+                //_currentTrainingImage = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.ImageSize, _network.ImageSize);
+                //this.CurrentTrainingImage.Source = _currentTrainingImage;
+                labelStatus.Content = statusText;
+                ShowCurrentImageClassification(currentOutput);
+            });
         }
 
         public void ShowCurrentImageClassification(float[] output)
@@ -292,12 +332,11 @@ namespace UI
 
         private void onTrainingFinished(string statusText)
         {
-//           Invoke(new MethodInvoker(
-//               delegate ()
-//               {
-//                   labelStatus.Text = statusText;
-//                   SetButtonsAfterTraining();
-//               }));
+            Dispatcher.Invoke(() =>
+            {
+                labelStatus.Content = statusText;
+                SetButtonsAfterTraining();
+            });
         }
 
         private void buttonCancelTraining_Click(object sender, EventArgs e)

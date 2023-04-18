@@ -1,56 +1,56 @@
-﻿using System.Drawing;
-
-namespace NeuralNetwork
+﻿namespace NeuralNetwork
 {
     public static class MnistTrainingDataLoader
     {
         #region ------------- Methods -------------------------------------------------------------
         public static byte[][] LoadImageFile(string filePath, int amount)
         {
-            FileStream fileStream = new FileStream(filePath, FileMode.Open);
-            BinaryReader binaryReader = new BinaryReader(fileStream);
-
-            int magicNum = binaryReader.ReadInt32();
-            int imageCount = binaryReader.ReadInt32();
-            int rowCount = binaryReader.ReadInt32();
-            int columnsCount = binaryReader.ReadInt32();
-
-            byte[][] images = new byte[amount][];
-
-            for (int iter = 0; iter < images.Length; iter++)
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open))
             {
-                byte[] image = new byte[28 * 28];
+                BinaryReader binaryReader = new BinaryReader(fileStream);
 
-                for (int i = 0; i < image.Length; i++)
+                int magicNum = binaryReader.ReadInt32();
+                int imageCount = binaryReader.ReadInt32();
+                int rowCount = binaryReader.ReadInt32();
+                int columnsCount = binaryReader.ReadInt32();
+
+                byte[][] images = new byte[amount][];
+
+                for (int iter = 0; iter < images.Length; iter++)
                 {
-                    image[i] = binaryReader.ReadByte();
+                    byte[] image = new byte[28 * 28];
+
+                    for (int i = 0; i < image.Length; i++)
+                    {
+                        image[i] = binaryReader.ReadByte();
+                    }
+
+                    images[iter] = image;
                 }
 
-                images[iter] = image;
+                return images;
             }
-
-            //Console.WriteLine($"{images.Length} images extracted from file '{filePath}'");
-            return images;
         }
 
         public static byte[] LoadLabelFile(string filePath, int amount)
         {
-            FileStream fileStream = new FileStream(filePath, FileMode.Open);
-            BinaryReader binaryReader = new BinaryReader(fileStream);
-
-            int magicNum = binaryReader.ReadInt32();
-            int labelCount = binaryReader.ReadInt32();
-
-            byte[] labels = new byte[amount];
-
-            for (int i = 0; i < labels.Length; i++)
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open))
             {
-                byte label = binaryReader.ReadByte();
-                labels[i] = label;
-            }
+                BinaryReader binaryReader = new BinaryReader(fileStream);
 
-            //Console.WriteLine($"{labels.Length} labels extracted from file '{filePath}'");
-            return labels;
+                int magicNum = binaryReader.ReadInt32();
+                int labelCount = binaryReader.ReadInt32();
+
+                byte[] labels = new byte[amount];
+
+                for (int i = 0; i < labels.Length; i++)
+                {
+                    byte label = binaryReader.ReadByte();
+                    labels[i] = label;
+                }
+
+                return labels;
+            }
         }
 
         //public static Bitmap ByteToBitmap(byte[] image, int width, int height)

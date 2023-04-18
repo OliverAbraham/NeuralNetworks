@@ -244,7 +244,7 @@ namespace WinFormsUI
             Invoke(new MethodInvoker(
                 delegate ()
                 {
-                    _currentTrainingImage = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.ImageSize, _network.ImageSize);
+                    _currentTrainingImage = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.TrainingImageSize, _network.TrainingImageSize);
                     this.currentTrainingImage.Image = _currentTrainingImage;
                     labelStatus.Text = statusText;
                     ShowCurrentImageClassification(currentOutput);
@@ -357,7 +357,7 @@ namespace WinFormsUI
 
         private float[] GetHandWrittenImage()
         {
-            _drawPad.RescaleImage(_network.ImageSize, _network.ImageSize);
+            _drawPad.RescaleImage(_network.TrainingImageSize, _network.TrainingImageSize);
             _drawPad.CenterImage();
             _drawPad.Image.Save(@"img.png", System.Drawing.Imaging.ImageFormat.Png);
             _drawPad.Image.Save(@"img.bmp", System.Drawing.Imaging.ImageFormat.Bmp);

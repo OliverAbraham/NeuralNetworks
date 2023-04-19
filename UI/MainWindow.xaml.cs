@@ -1,12 +1,14 @@
 ﻿using Abraham.WPFWindowLayoutManager;
 using NeuralNetwork;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace UI
 {
@@ -19,6 +21,11 @@ namespace UI
         private Image _currentNetworkWeights = null;
         private DrawPad _drawPad;
         private WindowLayoutManager _layoutManager;
+        private double _margin;
+        private double _totalHeight;
+        private List<Point> _outputNeuronPositions;
+        private List<Point> _inputNeuronPositions;
+        private List<List<Point>> _hiddenNeuronPositions;
         #endregion
 
 
@@ -153,10 +160,143 @@ namespace UI
             DrawStructure();
         }
 
-        private void DrawStructure()
+        private void buttonResetNetwork_Click(object sender, EventArgs e)
         {
+            var inputLayersEntered = false;
+            if (int.TryParse(textBoxNeuronsInInputLayer.Text, out int inputNeurons))
+                inputLayersEntered  = true;
+
+            var hiddenLayersEntered = false;
+            if (int.TryParse(textBoxHiddenLayers.Text, out int hiddenLayers))
+                hiddenLayersEntered = true;
+
+            var neuronsInHiddenLayersEntered = false;
+            if (int.TryParse(textBoxNeuronsInHiddenLayers.Text, out int neuronsInHiddenLayers))
+                neuronsInHiddenLayersEntered = true;
+
+            var neuronsInOutputLayerEntered = false;
+            if (int.TryParse(textBoxNeuronsInOutputLayer.Text, out int neuronsInOutputLayer))
+                neuronsInOutputLayerEntered = true;
+
+            if (inputLayersEntered          ) _network.NeuronsInInputLayer   = inputNeurons;
+            if (hiddenLayersEntered         ) _network.HiddenLayersCount     = hiddenLayers;
+            if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
+            if (neuronsInOutputLayerEntered ) _network.NeuronsInOutputLayer  = neuronsInOutputLayer;
+
+            _network.Initialize();
+            DrawStructure();
         }
 
+        private void DrawStructure()
+        {
+            _margin = 0.1;
+            _totalHeight = canvasStructure.Height * 0.8;
+
+            canvasStructure.Children.Clear();
+            DrawInputNeurons();
+            DrawHiddenNeurons();
+            DrawOutputNeurons();
+        }
+
+        private void DrawInputNeurons()
+        {
+            var x = canvasStructure.Width * _margin;
+            var y = (canvasStructure.Height/2) - (_totalHeight/2);
+            _inputNeuronPositions = DrawNCirclesVertically(x, y, _totalHeight, _network.NeuronsInInputLayer, Brushes.Black);
+        }
+
+        private void DrawHiddenNeurons()
+        {
+            var x = canvasStructure.Width * 3 * _margin;
+            if (_network.HiddenLayersCount == 1)
+                x = canvasStructure.Width / 2;
+
+            var y = (canvasStructure.Height/2) - (_totalHeight/2);
+
+            var totalWidthForHiddenNeurons = canvasStructure.Width - (4 * _margin * canvasStructure.Width);
+            var horizontalIncrement = totalWidthForHiddenNeurons / _network.HiddenLayersCount;
+
+            _hiddenNeuronPositions = new List<List<Point>>();
+
+            for (int h=0; h < _network.HiddenLayersCount; h++)
+            {
+                var pointList = DrawNCirclesVertically(x + h*horizontalIncrement, y, _totalHeight, _network.NeuronsInHiddenLayers, Brushes.Black);
+                _hiddenNeuronPositions.Add(pointList);
+
+                if (h == 0)
+                    DrawNLines(_inputNeuronPositions, pointList, Brushes.Black);
+                else
+                    DrawNLines(_hiddenNeuronPositions[h-1], _hiddenNeuronPositions[h], Brushes.Black);
+            }
+        }
+
+        private void DrawOutputNeurons()
+        {
+            var x = (1 - _margin) * canvasStructure.Width;
+            var y = (canvasStructure.Height / 2) - (_totalHeight / 2);
+            _outputNeuronPositions = DrawNCirclesVertically(x, y, _totalHeight, _network.NeuronsInOutputLayer, Brushes.Black);
+
+            DrawNLines(_hiddenNeuronPositions[_network.HiddenLayersCount-1], _outputNeuronPositions, Brushes.Black);
+        }
+
+        private void DrawNLines(List<Point> from, List<Point> to, Brush brush)
+        {
+            foreach(var p2 in to)
+                foreach(var p1 in from)
+                     AddLine(canvasStructure, p1.X, p1.Y, p2.X, p2.Y, brush, 1);
+        }
+
+        private List<Point> DrawNCirclesVertically(double x, double y, double totalHeight, int count, Brush brush)
+        {
+            var points = new List<Point>();
+            var increment = totalHeight / (count - 1);
+            for (int i = 0; i < count; i++)
+            {
+                var ypos = y + (i * increment);
+                AddCircleAt(canvasStructure, x, ypos, 10, brush);
+                points.Add(new Point(x+5, ypos+5));
+            }
+            return points;
+        }
+
+        private void AddLine(Canvas canvas, double x1, double y1, double x2, double y2, Brush brush, double thickness)
+        {
+            var line = new Line() { X1 = 0, Y1 = 0, X2 = x2-x1, Y2 = y2-y1, StrokeThickness = thickness, Stroke = brush, Fill = brush };
+            AddToCanvasAt(canvas, line, x1, y1);
+        }
+
+        private void AddTriangle(Canvas canvas)
+        {
+            var polygon = new Polygon() { StrokeThickness = 1,  Stroke = Brushes.Black, Fill = Brushes.DarkBlue };
+            polygon.Points.Add(new Point(0  ,100));
+            polygon.Points.Add(new Point(100,100));
+            polygon.Points.Add(new Point(50 ,0  ));
+            polygon.Points.Add(new Point(0  ,100));
+            AddToCanvasAt(canvas, polygon, 200, 50);
+        }
+
+        private void AddRectangle(Canvas canvas)
+        {
+            var polygon = new Polygon() { StrokeThickness = 1,  Stroke = Brushes.Black, Fill = Brushes.DarkRed };
+            polygon.Points.Add(new Point(0  ,100));
+            polygon.Points.Add(new Point(100,100));
+            polygon.Points.Add(new Point(100,  0));
+            polygon.Points.Add(new Point(0  ,  0));
+            AddToCanvasAt(canvas, polygon, 350, 50);
+        }
+
+        private void AddCircleAt(Canvas canvas, double x, double y, double radius, Brush brush)
+        {
+            var circle = new Ellipse() { Width = radius, Height = radius, StrokeThickness = 1,  Stroke = brush, Fill = brush };
+            AddToCanvasAt(canvas, circle, x, y);
+        }
+
+        private void AddToCanvasAt(Canvas canvas, Shape shape, double x, double y)
+        {
+            canvas.Children.Add(shape);
+            Canvas.SetLeft(shape, x);
+            Canvas.SetTop (shape, y);
+        }
         #endregion
         #region ------------- Training ------------------------------------------------------------
         private void TrainingInit()
@@ -183,6 +323,16 @@ namespace UI
         {
 
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void buttonStopTraining_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
         #endregion
         #region ------------- Test ----------------------------------------------------------------
         private void TestInit()
@@ -196,22 +346,6 @@ namespace UI
             textBoxStopAfterIterations.Text = "60000";
             buttonStartTraining.IsEnabled = true;
             buttonSaveNetwork.IsEnabled = true;
-        }
-
-        private void buttonResetNetwork_Click(object sender, EventArgs e)
-        {
-            var hiddenLayersEntered = false;
-            if (int.TryParse(textBoxHiddenLayers.Text, out int hiddenLayers))
-                hiddenLayersEntered = true;
-
-            var neuronsInHiddenLayersEntered = false;
-            if (int.TryParse(textBoxNeuronsInHiddenLayers.Text, out int neuronsInHiddenLayers))
-                neuronsInHiddenLayersEntered = true;
-
-            if (hiddenLayersEntered         ) _network.HiddenLayersCount     = hiddenLayers;
-            if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
-
-            _network.Initialize();
         }
 
         private void buttonStartTraining_Click(object sender, EventArgs e)
@@ -442,7 +576,6 @@ namespace UI
             labelClassification.Content = _network.GetOutputClassification(outputNeurons).ToString();
             _drawPad.ResetImage();
         }
-        #endregion
 
         private void Handwriting_MouseLeave(object sender, MouseEventArgs e)
         {
@@ -502,15 +635,6 @@ namespace UI
             }
         }
         #endregion
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void buttonStopTraining_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
+        #endregion
     }
 }

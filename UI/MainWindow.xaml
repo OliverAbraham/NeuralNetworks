@@ -28,7 +28,7 @@
 
                 <Button  Name="buttonSaveNetwork"  Content="Save"      Margin="32,568,0,0"  Height="45"  Width="96"       HorizontalAlignment="Left" VerticalAlignment="Top" Click="buttonSaveNetwork_Click" />
                 <Button  Name="buttonLoadNetwork"  Content="Load"      Margin="152,568,0,0" Height="45"  Width="96"       HorizontalAlignment="Left" VerticalAlignment="Top" Click="buttonLoadNetwork_Click" />
-                <Button  Name="ResetNetwork"       Content="Reset"     Margin="265,568,0,0" Height="45"  Width="98"       VerticalAlignment="Top" HorizontalAlignment="Left" Click="Button_Click"/>
+                <Button  Name="ResetNetwork"       Content="Reset"     Margin="265,568,0,0" Height="45"  Width="98"       VerticalAlignment="Top" HorizontalAlignment="Left" Click="buttonResetNetwork_Click"/>
             </Grid>
         </GroupBox>
 

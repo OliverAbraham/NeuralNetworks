@@ -248,8 +248,11 @@ namespace UI
 
         private List<Point> DrawNCirclesVertically(double x, double y, double totalHeight, int count, Brush brush)
         {
+            if (count == 1)
+                y = y + (totalHeight / 2);
+
             var points = new List<Point>();
-            var increment = totalHeight / (count - 1);
+            var increment = (count > 1) ? totalHeight / (count - 1) : 0;
             for (int i = 0; i < count; i++)
             {
                 var ypos = y + (i * increment);
@@ -261,8 +264,11 @@ namespace UI
 
         private void AddLine(Canvas canvas, double x1, double y1, double x2, double y2, Brush brush, double thickness)
         {
-            var line = new Line() { X1 = 0, Y1 = 0, X2 = x2-x1, Y2 = y2-y1, StrokeThickness = thickness, Stroke = brush, Fill = brush };
-            AddToCanvasAt(canvas, line, x1, y1);
+            if (x1 >= 0 && y1 >= 0 && x2 >= 0 && y2 >= 0)
+            {
+                var line = new Line() { X1 = 0, Y1 = 0, X2 = x2-x1, Y2 = y2-y1, StrokeThickness = thickness, Stroke = brush, Fill = brush };
+                AddToCanvasAt(canvas, line, x1, y1); 
+            }
         }
 
         private void AddTriangle(Canvas canvas)

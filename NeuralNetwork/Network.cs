@@ -3,7 +3,7 @@
     public class Network
     {
         #region ------------- Internal types ------------------------------------------------------
-        public delegate void TrainingProgressHandler(float[] output, string statusText, byte[] currentTrainingImage, int currentTrainingImageIndex);
+        public delegate void TrainingProgressHandler(float[] output, string statusText, byte[] currentTrainingImage, int currentTrainingImageIndex, int totalAccuracy);
         public delegate void TrainingFinishedHandler(string statusText);
 
         private class Callbacks
@@ -118,7 +118,7 @@
         public void Initialize()
         {
             _brain = new Brain(NeuronsInInputLayer, NeuronsInOutputLayer, HiddenLayersCount, NeuronsInHiddenLayers, 
-                -0.5F, 0.5F, false, Neuron.ReLU);
+                -0.3F, 0.3F, false, Neuron.ReLU);
         }
 
         public void StartTraining(TrainingProgressHandler onProgress, TrainingFinishedHandler onFinished)
@@ -250,8 +250,8 @@
 
         private void UpdateUIWhileTraining(TrainingProgressHandler onProgress, float[] currentOutput, float cost, int percent, int totalAccuracy, int count, byte[] currentTrainingImage, int currentTrainingImageIndex)
         {
-            var currentStatus = $"accuracy: {percent,4}%   cost: {Math.Round(cost, 1),4}   \ntotal accuracy: {totalAccuracy,4}%   iterations: {count,6} of {_brain.TotalTrainingIterations,6}        ";
-            onProgress(currentOutput, currentStatus, currentTrainingImage, currentTrainingImageIndex);
+            var currentStatus = $"accuracy: {percent,4}%   cost: {Math.Round(cost, 1),4}   \ntotal accuracy: {totalAccuracy,4}%        ";
+            onProgress(currentOutput, currentStatus, currentTrainingImage, currentTrainingImageIndex, totalAccuracy);
         }
 
         private float CalculateCost(float[] networkOutputs, int targetOutput)

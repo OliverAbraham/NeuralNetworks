@@ -26,6 +26,7 @@ namespace UI
         #region ------------- Fields --------------------------------------------------------------
         private Size _imageSize;
         private System.Windows.Point? prevPoint = null;
+        private Brush _brush = Brushes.White;
         #endregion
 
 
@@ -34,6 +35,7 @@ namespace UI
         public DrawPad(Canvas canvas)
         {
             _canvas = canvas;
+            _canvas.Background = Brushes.Black;
             this._imageSize = new Size(10, 10);
             this.LineWidth = 10;
             this.AlreadyDrawn = false;
@@ -112,7 +114,7 @@ namespace UI
 
         private void DrawCircle(double x, double y, int radius)
         {
-            var ellipse = new Ellipse {  Height = radius*2, Width = radius*2,   Fill = Brushes.White };
+            var ellipse = new Ellipse {  Height = radius*2, Width = radius*2, Fill = _brush };
             _canvas.Children.Add(ellipse);
             Canvas.SetLeft(ellipse, x);
 			Canvas.SetTop (ellipse, y);

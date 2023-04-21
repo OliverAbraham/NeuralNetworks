@@ -2,6 +2,7 @@
 using NeuralNetwork;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,20 +13,34 @@ using System.Windows.Shapes;
 
 namespace UI
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         #region ------------- Fields --------------------------------------------------------------
-        private string _trainingDataDirectory = "./TrainingData";
-        private Network _network;
-        private Image _currentTrainingImage = null;
-        private Image _currentNetworkWeights = null;
-        private DrawPad _drawPad;
         private WindowLayoutManager _layoutManager;
+
+        #region Training data
+        private string _trainingDataDirectory = "./TrainingData";
+        #endregion
+
+        #region Network
+        private Network _network;
+        #endregion
+
+        #region Structure
         private double _margin;
         private double _totalHeight;
         private List<Point> _outputNeuronPositions;
         private List<Point> _inputNeuronPositions;
         private List<List<Point>> _hiddenNeuronPositions;
+        #endregion
+
+        #region Training
+        private LineChartControl _accuracyChart;
+        #endregion
+
+        #region Test
+        private DrawPad _drawPad;
+        #endregion
         #endregion
 
 
@@ -185,6 +200,7 @@ namespace UI
 
             _network.Initialize();
             DrawStructure();
+            _accuracyChart.Clear();
         }
 
         private void DrawStructure()
@@ -262,6 +278,12 @@ namespace UI
             return points;
         }
 
+        private void AddPoint(Canvas canvas, double x, double y, Brush brush)
+        {
+            var line = new Line() { X1 = 0, Y1 = 0, X2 = 1, Y2 = 1, StrokeThickness = 1, Stroke = brush, Fill = brush };
+            AddToCanvasAt(canvas, line, x, y); 
+        }
+
         private void AddLine(Canvas canvas, double x1, double y1, double x2, double y2, Brush brush, double thickness)
         {
             if (x1 >= 0 && y1 >= 0 && x2 >= 0 && y2 >= 0)
@@ -309,7 +331,7 @@ namespace UI
             _network.LoadNetwork(_trainingDataDirectory);
             labelStatus.Content = "Network loaded.";
             //_drawPad.IsEnabled = true;
-            _drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
+            //_drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
         }
 
         private void buttonSaveNetwork_Click(object sender, RoutedEventArgs e)
@@ -327,10 +349,13 @@ namespace UI
             labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
             buttonStartTraining.IsEnabled = true;
             buttonSaveNetwork.IsEnabled = true;
+            _accuracyChart.Refresh();
+
         }
 
         private void TrainingInit()
         {
+            _accuracyChart = new LineChartControl(canvasAccuracy);
             textBoxTrainingSpeed.Text = _network.TrainingSpeed.ToString();
         }
 
@@ -370,14 +395,13 @@ namespace UI
 
             _network.StopAfterIterations = 0;
             _network.StopAfterAccurracy = 0;
-            if (hiddenLayersEntered) _network.HiddenLayersCount = hiddenLayers;
+            if (hiddenLayersEntered         ) _network.HiddenLayersCount     = hiddenLayers;
             if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
-            if (stopAfterIterationsEntered) _network.StopAfterIterations = iterations;
-            if (stopAfterAccurracyEntered) _network.StopAfterAccurracy = accuracy;
-            if (trainingSpeedEntered) _network.TrainingSpeed = trainingSpeed;
+            if (stopAfterIterationsEntered  ) _network.StopAfterIterations   = iterations;
+            if (stopAfterAccurracyEntered   ) _network.StopAfterAccurracy    = accuracy;
+            if (trainingSpeedEntered        ) _network.TrainingSpeed         = trainingSpeed;
 
             SetButtonsForTrainingProgress();
-
             _network.StartTraining(onTrainingProgress, onTrainingFinished);
         }
 
@@ -429,7 +453,7 @@ namespace UI
             return true;
         }
 
-        private void onTrainingProgress(float[] currentOutput, string statusText, byte[] currentTrainingImage, int currentTrainingImageIndex)
+        private void onTrainingProgress(float[] currentOutput, string statusText, byte[] currentTrainingImage, int currentTrainingImageIndex, int totalAccuracy)
         {
             Dispatcher.Invoke(() =>
             {
@@ -437,6 +461,7 @@ namespace UI
                 labelStatus.Content = statusText;
                 labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
                 ShowCurrentImageClassification(currentOutput);
+                AddValueToAccuracyDiagram(totalAccuracy);
             });
         }
 
@@ -468,20 +493,22 @@ namespace UI
 
         private void SetButtonsForTrainingProgress()
         {
+            textBoxNeuronsInInputLayer  .IsEnabled = false;
             textBoxNeuronsInHiddenLayers.IsEnabled = false;
-            textBoxHiddenLayers.IsEnabled = false;
-            textBoxStopAfterIterations.IsEnabled = false;
-            textBoxStopIfAccuracyIs.IsEnabled = false;
-            textBoxTrainingSpeed.IsEnabled = false;
-            buttonStopTraining.IsEnabled = true;
-            buttonStartTraining.IsEnabled = false;
-            buttonLoadTrainingData.IsEnabled = false;
-            labelStatus.Content = "Training ...";
+            textBoxHiddenLayers         .IsEnabled = false;
+            textBoxNeuronsInOutputLayer .IsEnabled = false;
+            textBoxStopAfterIterations  .IsEnabled = false;
+            textBoxStopIfAccuracyIs     .IsEnabled = false;
+            textBoxTrainingSpeed        .IsEnabled = false;
+            buttonStopTraining          .IsEnabled = true;
+            buttonStartTraining         .IsEnabled = false;
+            buttonLoadTrainingData      .IsEnabled = false;
+            labelStatus                 .Content = "Training ...";
         }
 
         private void SetButtonsAfterTraining()
         {
-            _drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
+            //_drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
             //_drawPad.IsEnabled = true;
             //textBoxNeuronsInHiddenLayers.IsEnabled = true;
             //textBoxHiddenLayers         .IsEnabled = true;
@@ -492,13 +519,15 @@ namespace UI
             buttonStartTraining.IsEnabled = true;
             buttonLoadTrainingData.IsEnabled = true;
         }
+
+        private void AddValueToAccuracyDiagram(int totalAccuracy)
+        {
+            _accuracyChart.AddValue(totalAccuracy);
+            NotifyPropertyChanged(nameof(canvasAccuracy));
+        }
         #endregion
         #region ------------- Test ----------------------------------------------------------------
         private void TestInit()
-        {
-        }
-
-        private void buttonCheck_Click(object sender, RoutedEventArgs e)
         {
         }
 
@@ -513,9 +542,20 @@ namespace UI
             //Controls.Add(_drawPad);
         }
 
-        private void OnUserHasDrawnAnImage()
+        private void Handwriting_MouseLeave(object sender, MouseEventArgs e)
         {
-            buttonCheck_Click(null, null);
+            var bitmap = GetBitmapFromCanvas(HandwritingCanvas, 28, 28);
+            //var stream = SaveBitmapToMemoryStream(bitmap);
+            CurrentTrainingImage.Source = bitmap;
+
+            //var outputNeurons = _network.Think(inputValues);
+            //DisplayClassification(outputNeurons);
+
+            //SaveBitmapToFile(bitmap, "handwriting.bmp");
+            //var converter = new ImageSourceConverter();
+            //var image = converter.ConvertFromString("handwriting.bmp") as ImageSource;
+            //CurrentTrainingImage.Source = image;
+            //File.Delete("handwriting.bmp");
         }
 
         private void buttonCheck_Click(object sender, EventArgs e)
@@ -553,19 +593,6 @@ namespace UI
             labelClassicationResults.Content = results;
             labelClassification.Content = _network.GetOutputClassification(outputNeurons).ToString();
             _drawPad.ResetImage();
-        }
-
-        private void Handwriting_MouseLeave(object sender, MouseEventArgs e)
-        {
-            var bitmap = GetBitmapFromCanvas(HandwritingCanvas, 28, 28);
-            //var stream = SaveBitmapToMemoryStream(bitmap);
-            CurrentTrainingImage.Source = bitmap;
-
-            //SaveBitmapToFile(bitmap, "handwriting.bmp");
-            //var converter = new ImageSourceConverter();
-            //var image = converter.ConvertFromString("handwriting.bmp") as ImageSource;
-            //CurrentTrainingImage.Source = image;
-            //File.Delete("handwriting.bmp");
         }
 
         private RenderTargetBitmap GetBitmapFromCanvas(Canvas canvas, int width, int height)
@@ -614,5 +641,35 @@ namespace UI
         }
         #endregion
         #endregion
+
+
+        #region ------------- INotifyPropertyChanged ---------------------------
+
+        // add "INotifyPropertyChanged" to your class
+        // add "using System.ComponentModel";
+        // add "using System";
+
+        [NonSerialized]
+        private PropertyChangedEventHandler? _propertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged
+        {
+            add
+            {
+                _propertyChanged += value;
+            }
+            remove
+            {
+                _propertyChanged -= value;
+            }
+        }
+
+        public void NotifyPropertyChanged(string propertyName)
+        {
+            var handler = _propertyChanged; // avoid race condition
+            if (handler != null)
+                handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion       
     }
 }

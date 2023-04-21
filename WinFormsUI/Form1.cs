@@ -239,7 +239,7 @@ namespace WinFormsUI
             return true;
         }
 
-        private void onTrainingProgress(float[] currentOutput, string statusText, byte[] currentTrainingImage)
+        private void onTrainingProgress(float[] currentOutput, string statusText, byte[] currentTrainingImage, int currentTrainingImageIndex, int totalAccuracy)
         {
             Invoke(new MethodInvoker(
                 delegate ()

@@ -58,19 +58,22 @@
         </GroupBox>
 
 
-        <GroupBox Header="Training"                                    Margin="894,30,0,0" HorizontalAlignment="Left" Width="393" Height="684" VerticalAlignment="Top" Background="#FFE2E9EF">
+        <GroupBox Header="Training"                                    Margin="894,30,0,0"  HorizontalAlignment="Left" Width="393" Height="684" VerticalAlignment="Top" Background="#FFE2E9EF">
             <Grid>
-                <Label  Content="Stop after iterations"                Margin="22,16,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-                <TextBox Name="textBoxStopAfterIterations"             Margin="232,20,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+                <Label  Content="Stop after iterations"                Margin="22,16,0,0"   VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxStopAfterIterations"             Margin="232,20,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
 
-                <Label  Content="Stop if accuracy is"                  Margin="22,46,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-                <TextBox Name="textBoxStopIfAccuracyIs"                Margin="232,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+                <Label  Content="Stop if accuracy is"                  Margin="22,46,0,0"   VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxStopIfAccuracyIs"                Margin="232,50,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
 
-                <Label  Content="Training speed"                       Margin="22,76,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-                <TextBox Name="textBoxTrainingSpeed"                   Margin="232,80,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
+                <Label  Content="Training speed"                       Margin="22,76,0,0"   VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxTrainingSpeed"                   Margin="232,80,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
 
-                <Label   Name="labelStatusTxt"                         Margin="22,124,0,0"     Width="124" HorizontalAlignment="Left" Height="45" VerticalAlignment="Top" >Status:</Label>
-                <Label   Name="labelStatus"                            Margin="22,146,29,0"     Height="78" VerticalAlignment="Top" >---</Label>
+                <Label   Name="labelStatusTxt" Content="Status:"       Margin="22,124,0,0"  Height="45" Width="124" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Label   Name="labelStatus"                            Margin="22,146,29,0" Height="78" VerticalAlignment="Top"/>
+
+                <Label   Name="labelAccuracy" Content="Accuracy:"      Margin="22,200,0,0"  Height="45" Width="124" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Canvas  Name="canvasAccuracy"                         Margin="0,238,0,167" Height="300" HorizontalAlignment="Center" Width="339" Background="#FFD3D8DD"/>
 
                 <Button  Name="buttonStartTraining"                    Margin="38,570,0,0"  Height="45" VerticalAlignment="Top" Click="buttonStartTraining_Click" HorizontalAlignment="Left" Width="120" Content="Start" />
                 <Button  Name="buttonStopTraining"                     Margin="190,570,0,0" Height="45" VerticalAlignment="Top" Click="buttonStopTraining_Click"  HorizontalAlignment="Left" Width="118" Content="Stop" />

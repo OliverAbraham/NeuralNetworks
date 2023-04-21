@@ -209,24 +209,24 @@
             // Generate input neurons
             for (int i = 0; i < Inputs.Length; i++)
             {
-                Inputs[i] = new Neuron();
-                Inputs[i].Type = Neuron.NeuronType.InputNeuron;
-                Inputs[i].ID = "Input" + i;
-                Inputs[i].LayerIndex = i;
-                Inputs[i].InputConnections = new Neuron[inputCount];
-                Inputs[i].Weight = new float[neuronsPerLayer];
+                Inputs[i]                    = new Neuron();
+                Inputs[i].Type               = Neuron.NeuronType.InputNeuron;
+                Inputs[i].ID                 = "Input" + i;
+                Inputs[i].LayerIndex         = i;
+                Inputs[i].InputConnections   = new Neuron[inputCount];
+                Inputs[i].Weight             = new float[neuronsPerLayer];
                 Inputs[i].ActivationFunction = _activationFunction;
             }
 
             //Generate output neurons
             for (int i = 0; i < Outputs.Length; i++)
             {
-                Outputs[i] = new Neuron();
-                Outputs[i].Type = Neuron.NeuronType.OutputNeuron;
-                Outputs[i].ID = "Output" + i;
-                Outputs[i].LayerIndex = i;
-                Outputs[i].InputConnections = new Neuron[neuronsPerLayer];
-                Outputs[i].Weight = new float[neuronsPerLayer];
+                Outputs[i]                    = new Neuron();
+                Outputs[i].Type               = Neuron.NeuronType.OutputNeuron;
+                Outputs[i].ID                 = "Output" + i;
+                Outputs[i].LayerIndex         = i;
+                Outputs[i].InputConnections   = new Neuron[neuronsPerLayer];
+                Outputs[i].Weight             = new float[neuronsPerLayer];
                 Outputs[i].ActivationFunction = _activationFunction;
             }
 
@@ -236,12 +236,12 @@
                 HiddenLayers[iteration] = new Neuron[neuronsPerLayer];
                 for (int i = 0; i < HiddenLayers[iteration].Length; i++)
                 {
-                    HiddenLayers[iteration][i] = new Neuron();
-                    HiddenLayers[iteration][i].Type = Neuron.NeuronType.HiddenNeuron;
-                    HiddenLayers[iteration][i].ID = "Neuron" + i;
-                    HiddenLayers[iteration][i].LayerIndex = i;
-                    HiddenLayers[iteration][i].InputConnections = new Neuron[neuronsPerLayer];
-                    HiddenLayers[iteration][i].Weight = new float[neuronsPerLayer];
+                    HiddenLayers[iteration][i]                    = new Neuron();
+                    HiddenLayers[iteration][i].Type               = Neuron.NeuronType.HiddenNeuron;
+                    HiddenLayers[iteration][i].ID                 = "Neuron" + i;
+                    HiddenLayers[iteration][i].LayerIndex         = i;
+                    HiddenLayers[iteration][i].InputConnections   = new Neuron[neuronsPerLayer];
+                    HiddenLayers[iteration][i].Weight             = new float[neuronsPerLayer];
                     HiddenLayers[iteration][i].ActivationFunction = _activationFunction;
                 }
             }
@@ -250,12 +250,12 @@
             HiddenLayers[0] = new Neuron[neuronsPerLayer];
             for (int i = 0; i < HiddenLayers[0].Length; i++)
             {
-                HiddenLayers[0][i] = new Neuron();
-                HiddenLayers[0][i].Type = Neuron.NeuronType.HiddenNeuron;
-                HiddenLayers[0][i].ID = "Neuron" + i;
-                HiddenLayers[0][i].LayerIndex = i;
-                HiddenLayers[0][i].InputConnections = new Neuron[inputCount];
-                HiddenLayers[0][i].Weight = new float[inputCount];
+                HiddenLayers[0][i]                    = new Neuron();
+                HiddenLayers[0][i].Type               = Neuron.NeuronType.HiddenNeuron;
+                HiddenLayers[0][i].ID                 = "Neuron" + i;
+                HiddenLayers[0][i].LayerIndex         = i;
+                HiddenLayers[0][i].InputConnections   = new Neuron[inputCount];
+                HiddenLayers[0][i].Weight             = new float[inputCount];
                 HiddenLayers[0][i].ActivationFunction = _activationFunction;
             }
 
@@ -263,7 +263,6 @@
             Array.Copy(HiddenLayers, 0, AllLayers, 1, HiddenLayers.Length);
             AllLayers[0] = Inputs;
             AllLayers[AllLayers.Length - 1] = Outputs;
-
         }
 
         private void GenerateBrainStructure(float minWeightVal, float maxWeightVal, bool addDisconnectedWeights) // Randomly generates the weights of the neuron

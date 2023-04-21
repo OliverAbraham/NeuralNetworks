@@ -303,46 +303,20 @@ namespace UI
             Canvas.SetLeft(shape, x);
             Canvas.SetTop (shape, y);
         }
-        #endregion
-        #region ------------- Training ------------------------------------------------------------
-        private void TrainingInit()
-        {
-            textBoxTrainingSpeed.Text = _network.TrainingSpeed.ToString();
-        }
-
-        private void buttonCheck_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
 
         private void buttonLoadNetwork_Click(object sender, RoutedEventArgs e)
         {
-
+            _network.LoadNetwork(_trainingDataDirectory);
+            labelStatus.Content = "Network loaded.";
+            //_drawPad.IsEnabled = true;
+            _drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
         }
 
         private void buttonSaveNetwork_Click(object sender, RoutedEventArgs e)
         {
-
-        }
-
-        private void train_button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void buttonStopTraining_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-        #endregion
-        #region ------------- Test ----------------------------------------------------------------
-        private void TestInit()
-        {
+            _network.SaveNetwork(_trainingDataDirectory);
+            labelStatus.Content = "Network saved.";
+            //_drawPad.IsEnabled = true;
         }
         #endregion
         #region ------------- Training ------------------------------------------------------------
@@ -350,8 +324,14 @@ namespace UI
         {
             textBoxNeuronsInInputLayer.Text = _network.NeuronsInInputLayer.ToString();
             textBoxStopAfterIterations.Text = "60000";
+            labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
             buttonStartTraining.IsEnabled = true;
             buttonSaveNetwork.IsEnabled = true;
+        }
+
+        private void TrainingInit()
+        {
+            textBoxTrainingSpeed.Text = _network.TrainingSpeed.ToString();
         }
 
         private void buttonStartTraining_Click(object sender, EventArgs e)
@@ -449,13 +429,13 @@ namespace UI
             return true;
         }
 
-        private void onTrainingProgress(float[] currentOutput, string statusText, byte[] currentTrainingImage)
+        private void onTrainingProgress(float[] currentOutput, string statusText, byte[] currentTrainingImage, int currentTrainingImageIndex)
         {
             Dispatcher.Invoke(() =>
             {
-                //_currentTrainingImage = BitmapConverter.ByteToBitmap(currentTrainingImage, _network.ImageSize, _network.ImageSize);
-                //this.CurrentTrainingImage.Source = _currentTrainingImage;
+                CurrentTrainingImage.Source = CreateImageFromBytes(currentTrainingImage);
                 labelStatus.Content = statusText;
+                labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
                 ShowCurrentImageClassification(currentOutput);
             });
         }
@@ -479,7 +459,7 @@ namespace UI
             });
         }
 
-        private void buttonCancelTraining_Click(object sender, EventArgs e)
+        private void buttonStopTraining_Click(object sender, RoutedEventArgs e)
         {
             _network.CancelTraining();
             labelStatus.Content = "training cancelled";
@@ -513,23 +493,15 @@ namespace UI
             buttonLoadTrainingData.IsEnabled = true;
         }
         #endregion
-        #region ------------- Loading/saving ------------------------------------------------------
-        private void buttonSaveNetwork_Click(object sender, EventArgs e)
+        #region ------------- Test ----------------------------------------------------------------
+        private void TestInit()
         {
-            _network.SaveNetwork(_trainingDataDirectory);
-            labelStatus.Content = "Network saved.";
-            //_drawPad.IsEnabled = true;
         }
 
-        private void buttonLoadNetwork_Click(object sender, EventArgs e)
+        private void buttonCheck_Click(object sender, RoutedEventArgs e)
         {
-            _network.LoadNetwork(_trainingDataDirectory);
-            labelStatus.Content = "Network loaded.";
-            //_drawPad.IsEnabled = true;
-            _drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
         }
-        #endregion
-        #region ------------- Checking handwritten image ------------------------------------------
+
         private void InitHandwritingDrawPad()
         {
             //_drawPad = new DrawPad();

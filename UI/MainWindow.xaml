@@ -23,6 +23,9 @@
                 <Label Content="Neurons in output layer"               Margin="22,106,0,0"  VerticalAlignment="Top" HorizontalAlignment="Left" />
                 <TextBox Name="textBoxNeuronsInOutputLayer"            Margin="232,110,0,0" Width="120" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" />
 
+                <Label Content="Total training interations"            Margin="22,136,0,0"  VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <Label Name="labelTotalTrainingIterations"             Margin="232,136,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+
                 <Label   Name="labelStructure"                         Margin="24,195,0,0"  Height="43" VerticalAlignment="Top" HorizontalAlignment="Left" Width="132" Content="Structure:" />
                 <Canvas  Name="canvasStructure"                        Margin="0,238,0,167" Height="300" HorizontalAlignment="Center" Width="339" Background="#FFD3D8DD"/>
 
@@ -67,7 +70,7 @@
                 <TextBox Name="textBoxTrainingSpeed"                   Margin="232,80,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
 
                 <Label   Name="labelStatusTxt"                         Margin="22,124,0,0"     Width="124" HorizontalAlignment="Left" Height="45" VerticalAlignment="Top" >Status:</Label>
-                <Label   Name="labelStatus"                            Margin="30,169,0,0"     Height="45"  Width="54"  HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
+                <Label   Name="labelStatus"                            Margin="22,146,29,0"     Height="78" VerticalAlignment="Top" >---</Label>
 
                 <Button  Name="buttonStartTraining"                    Margin="38,570,0,0"  Height="45" VerticalAlignment="Top" Click="buttonStartTraining_Click" HorizontalAlignment="Left" Width="120" Content="Start" />
                 <Button  Name="buttonStopTraining"                     Margin="190,570,0,0" Height="45" VerticalAlignment="Top" Click="buttonStopTraining_Click"  HorizontalAlignment="Left" Width="118" Content="Stop" />

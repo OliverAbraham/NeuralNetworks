@@ -3,7 +3,7 @@
     public class Network
     {
         #region ------------- Internal types ------------------------------------------------------
-        public delegate void TrainingProgressHandler(float[] output, string statusText, byte[] currentTrainingImage);
+        public delegate void TrainingProgressHandler(float[] output, string statusText, byte[] currentTrainingImage, int currentTrainingImageIndex);
         public delegate void TrainingFinishedHandler(string statusText);
 
         private class Callbacks
@@ -36,6 +36,7 @@
         public float    TrainingSpeed          { get; set; } = 0.0005F;
         public int      StopAfterIterations    { get; set; }
         public int      StopAfterAccurracy     { get; set; }
+        public int      TotalTrainingIterations => _brain.TotalTrainingIterations;
         #endregion
 
 
@@ -196,8 +197,9 @@
             _trainingInProgress = true;
             while (_trainingInProgress)
             {
-                var currentTrainingImage = _trainingImages[iteration % TrainingImageCount];
-                var currentTrainingLabel = _trainingLabels[iteration % TrainingImageCount];
+                var currentTrainingImageIndex = iteration % TrainingImageCount;
+                var currentTrainingImage = _trainingImages[currentTrainingImageIndex];
+                var currentTrainingLabel = _trainingLabels[currentTrainingImageIndex];
 
                 float[] output = _brain.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage), Neuron.ReLU);
                 var outputNum = GetOutputClassification(output);
@@ -223,16 +225,16 @@
                 iteration++;
 
                 if ((iteration % 100) == 0)
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage);
+                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, currentTrainingImageIndex);
 
                 if (StopAfterIterations > 0 && iteration >= StopAfterIterations-1)
                 {
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage);
+                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, currentTrainingImageIndex);
                     break;
                 }
                 if (StopAfterAccurracy > 0 && iteration >= 1000 & totalAccuracy >= StopAfterAccurracy)
                 {
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage);
+                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, currentTrainingImageIndex);
                     break;
                 }
             }
@@ -246,10 +248,10 @@
             _trainingThread = null;
         }
 
-        private void UpdateUIWhileTraining(TrainingProgressHandler onProgress, float[] currentOutput, float cost, int percent, int totalAccuracy, int count, byte[] currentTrainingImage)
+        private void UpdateUIWhileTraining(TrainingProgressHandler onProgress, float[] currentOutput, float cost, int percent, int totalAccuracy, int count, byte[] currentTrainingImage, int currentTrainingImageIndex)
         {
-            var currentStatus = $"accuracy: {percent,4}%   cost: {Math.Round(cost, 1),4}   total accuracy: {totalAccuracy,4}%   iterations: {count,6} of {_brain.TotalTrainingIterations,6}        ";
-            onProgress(currentOutput, currentStatus, currentTrainingImage);
+            var currentStatus = $"accuracy: {percent,4}%   cost: {Math.Round(cost, 1),4}   \ntotal accuracy: {totalAccuracy,4}%   iterations: {count,6} of {_brain.TotalTrainingIterations,6}        ";
+            onProgress(currentOutput, currentStatus, currentTrainingImage, currentTrainingImageIndex);
         }
 
         private float CalculateCost(float[] networkOutputs, int targetOutput)

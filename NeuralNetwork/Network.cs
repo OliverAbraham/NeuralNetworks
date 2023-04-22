@@ -312,7 +312,7 @@
                 {
                     Neuron neuron = layer[neuronNum];
 
-                    for (int weightNum = 0; weightNum < neuron.Weight.Length; weightNum++)
+                    for (int weightNum = 0; weightNum < neuron.Weights.Length; weightNum++)
                     {
                         float change = 0.0F;
 
@@ -322,7 +322,7 @@
                         }
                         change = change / changes.Length;
 
-                        neuron.Weight[weightNum] += change;
+                        neuron.Weights[weightNum] += change;
                     }
                 }
             }
@@ -345,9 +345,9 @@
                 for (int neuronNum = 0; neuronNum < layer.Length; neuronNum++)
                 {
                     Neuron neuron = layer[neuronNum];
-                    float[] weightChanges = new float[neuron.Weight.Length];
+                    float[] weightChanges = new float[neuron.Weights.Length];
 
-                    for (int i = 0; i < neuron.Weight.Length; i++)
+                    for (int i = 0; i < neuron.Weights.Length; i++)
                     {
                         float deltaW = 0.0F;
                         if (neuron.Type == Neuron.NeuronType.HiddenNeuron)
@@ -367,7 +367,7 @@
                         if (!float.IsNaN(deltaW))
                         {
                             weightChanges[i] = deltaW;
-                            neuron.Weight[i] += deltaW;
+                            neuron.Weights[i] += deltaW;
                         }
                     }
                     neuronChanges[neuronNum] = weightChanges;
@@ -398,7 +398,7 @@
             for (int i = 0; i < layers[prevLayer].Length; i++)
             {
                 Neuron prevNeuron = layers[prevLayer][i];
-                sum += prevNeuron.Delta_i * prevNeuron.Weight[targetNeuron];
+                sum += prevNeuron.Delta_i * prevNeuron.Weights[targetNeuron];
             }
             neuron.Delta_i = derivative_ReLU(neuron.Activation) * sum;
 

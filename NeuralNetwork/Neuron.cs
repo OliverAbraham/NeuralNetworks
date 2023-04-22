@@ -16,12 +16,12 @@
         /// <summary>
         /// Input neurons to us
         /// </summary>
-        public Neuron[]           InputConnections;
-        public int                InputConnectionsCount = 0;
-        public Neuron[]           OutputConnections;
+        public Neuron[]           Inputs;
+        public int                InputCount = 0;
+        public Neuron[]           Outputs;
         public float              Activation = 0.0F;
         public float              Bias;
-        public float[]            Weight;
+        public float[]            Weights;
         public int                ReceivedInputs = 0;
         public Func<float, float> ActivationFunction;
         public float              Delta_i;
@@ -45,24 +45,24 @@
             if (Type == NeuronType.InputNeuron)
             {
                 Activation = value;
-                SendValue();
+                ActivateNextLayer();
             }
 
             else if (Type == NeuronType.OutputNeuron)
             {
                 int i = sender.LayerIndex;
-                Activation += value * Weight[i];
+                Activation += value * Weights[i];
             }
 
             else
             {
                 int i = sender.LayerIndex;
-                Activation += value * Weight[i];
+                Activation += value * Weights[i];
                 ReceivedInputs++;
 
-                if (ReceivedInputs == InputConnections.Length)
+                if (ReceivedInputs == Inputs.Length)
                 {
-                    SendValue();
+                    ActivateNextLayer();
                 }
             }
         }
@@ -79,17 +79,17 @@
 
         public object Clone()
         {
-            Neuron neuron = new Neuron();
-            neuron.Type = this.Type;
-            neuron.ID = this.ID;
-            neuron.LayerIndex = this.LayerIndex;
-            neuron.Bias = this.Bias;
-            neuron.Weight = new float[this.Weight.Length];
+            Neuron neuron             = new Neuron();
+            neuron.Type               = this.Type;
+            neuron.ID                 = this.ID;
+            neuron.LayerIndex         = this.LayerIndex;
+            neuron.Bias               = this.Bias;
+            neuron.Weights             = new float[this.Weights.Length];
             neuron.ActivationFunction = this.ActivationFunction;
 
-            for (int i = 0; i < Weight.Length; i++)
+            for (int i = 0; i < Weights.Length; i++)
             {
-                neuron.Weight[i] = this.Weight[i];
+                neuron.Weights[i] = this.Weights[i];
             }
 
             return neuron;
@@ -99,14 +99,14 @@
 
 
         #region ------------- Implementation ------------------------------------------------------
-        private void SendValue()
+        private void ActivateNextLayer()
         {
-            for (int i = 0; i < OutputConnections.Length; i++)
+            for (int i = 0; i < Outputs.Length; i++)
             {
                 if (!float.IsNaN(ActivationFunction(Activation)))
-                    OutputConnections[i].Activate(this, ActivationFunction(Activation));
+                    Outputs[i].Activate(this, ActivationFunction(Activation));
                 else
-                    OutputConnections[i].Activate(this, 0);
+                    Outputs[i].Activate(this, 0);
             }
         }
         #endregion

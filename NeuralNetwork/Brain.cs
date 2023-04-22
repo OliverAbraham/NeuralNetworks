@@ -36,7 +36,8 @@
         {
             _activationFunction = activationFunc;
             GenerateNeurons(inputCount, outputCount, layerCount, neuronsPerLayer);
-            GenerateBrainStructure(minWeightVal, maxWeightVal, addDisconnectedWeights);
+            GenerateBrainStructure();
+            InitializeWeightsAndBiases(minWeightVal, maxWeightVal, addDisconnectedWeights);
         }
 
         public Brain(string filename)
@@ -204,7 +205,7 @@
             return results;
         }
 
-        private void GenerateNeurons(int inputCount, int outputCount, int layerCount, int neuronsPerLayer)
+        private void GenerateNeurons(int inputCount, int outputCount, int hiddenLayerCount, int neuronsPerHiddenLayer)
         {
             // Generate input neurons
             Inputs = new Neuron[inputCount];
@@ -215,7 +216,7 @@
                 Inputs[i].ID                 = "Input" + i;
                 Inputs[i].LayerIndex         = i;
                 Inputs[i].Inputs             = new Neuron[inputCount];
-                Inputs[i].Weights            = new float[neuronsPerLayer];
+                Inputs[i].Weights            = new float[neuronsPerHiddenLayer];
                 Inputs[i].ActivationFunction = _activationFunction;
             }
 
@@ -227,30 +228,30 @@
                 Outputs[i].Type               = Neuron.NeuronType.OutputNeuron;
                 Outputs[i].ID                 = "Output" + i;
                 Outputs[i].LayerIndex         = i;
-                Outputs[i].Inputs             = new Neuron[neuronsPerLayer];
-                Outputs[i].Weights            = new float[neuronsPerLayer];
+                Outputs[i].Inputs             = new Neuron[neuronsPerHiddenLayer];
+                Outputs[i].Weights            = new float[neuronsPerHiddenLayer];
                 Outputs[i].ActivationFunction = _activationFunction;
             }
 
             //Generate hidden neurons
-            HiddenLayers = new Neuron[layerCount][];
+            HiddenLayers = new Neuron[hiddenLayerCount][];
             for (int layer = 1; layer < HiddenLayers.Length; layer++)
             {
-                HiddenLayers[layer] = new Neuron[neuronsPerLayer];
+                HiddenLayers[layer] = new Neuron[neuronsPerHiddenLayer];
                 for (int i = 0; i < HiddenLayers[layer].Length; i++)
                 {
                     HiddenLayers[layer][i]                    = new Neuron();
                     HiddenLayers[layer][i].Type               = Neuron.NeuronType.HiddenNeuron;
                     HiddenLayers[layer][i].ID                 = "Neuron" + i;
                     HiddenLayers[layer][i].LayerIndex         = i;
-                    HiddenLayers[layer][i].Inputs             = new Neuron[neuronsPerLayer];
-                    HiddenLayers[layer][i].Weights            = new float[neuronsPerLayer];
+                    HiddenLayers[layer][i].Inputs             = new Neuron[neuronsPerHiddenLayer];
+                    HiddenLayers[layer][i].Weights            = new float[neuronsPerHiddenLayer];
                     HiddenLayers[layer][i].ActivationFunction = _activationFunction;
                 }
             }
 
             //Generate input neurons of the first layer, to configure them with the inputs
-            HiddenLayers[0] = new Neuron[neuronsPerLayer];
+            HiddenLayers[0] = new Neuron[neuronsPerHiddenLayer];
             for (int i = 0; i < HiddenLayers[0].Length; i++)
             {
                 HiddenLayers[0][i]                    = new Neuron();
@@ -268,34 +269,49 @@
             AllLayers[AllLayers.Length - 1] = Outputs;
         }
 
-        private void GenerateBrainStructure(float minWeightVal, float maxWeightVal, bool addDisconnectedWeights) // Randomly generates the weights of the neuron
+        private void GenerateBrainStructure()
         {
-            int min = (int)(minWeightVal * 100);
-            int max = (int)(maxWeightVal * 100);
-
             for (int layer = 0; layer < AllLayers.Length - 1; layer++)
             {
                 for (int neuron = 0; neuron < AllLayers[layer].Length; neuron++)
                 {
                     Neuron currentNeuron = AllLayers[layer][neuron]; // neuron, that gets outputs
-                    int outputCount = AllLayers[layer + 1].Length; // Amount of outputs
-                    currentNeuron.Outputs = new Neuron[outputCount];
-                    currentNeuron.Bias = RandomNumberGenerator.Between(-10, 10);
+                    
+                    currentNeuron.Outputs = new Neuron[AllLayers[layer + 1].Length];
 
                     // connect all neurons of the next layer with us
                     for (int i = 0; i < AllLayers[layer + 1].Length; i++)
                     {
                         Neuron nextLayerNeuron = AllLayers[layer + 1][i]; // Neuron that will receive input
-
                         currentNeuron.Outputs[i] = nextLayerNeuron;
-
                         nextLayerNeuron.Inputs[nextLayerNeuron.InputCount] = currentNeuron;
-                        nextLayerNeuron.Weights[nextLayerNeuron.InputCount] = RandomNumberGenerator.Between(min, max) / 100.0F;
-
-                        if (addDisconnectedWeights)
-                            nextLayerNeuron.Weights[nextLayerNeuron.InputCount] *= RandomNumberGenerator.Between(-1, 1);
-
                         nextLayerNeuron.InputCount++;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Randomly generates the weights of the neuron
+        /// </summary>
+        private void InitializeWeightsAndBiases(float minWeightVal, float maxWeightVal, bool addDisconnectedWeights)
+        {
+            int min = (int)(minWeightVal * 100);
+            int max = (int)(maxWeightVal * 100);
+
+            for (int layer = 0; layer < AllLayers.Length; layer++)
+            {
+                for (int neuron = 0; neuron < AllLayers[layer].Length; neuron++)
+                {
+                    Neuron currentNeuron = AllLayers[layer][neuron];
+                    
+                    currentNeuron.Bias = RandomNumberGenerator.Between(-10, 10);
+
+                    for (int i = 0; i < currentNeuron.Weights.Length; i++)
+                    {
+                        currentNeuron.Weights[i] = RandomNumberGenerator.Between(min, max) / 100.0F;
+                        if (addDisconnectedWeights)
+                            currentNeuron.Weights[i] *= RandomNumberGenerator.Between(-1, 1);
                     }
                 }
             }

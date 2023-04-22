@@ -84,11 +84,15 @@
         <GroupBox Header="Test"                                        Margin="1343,30,0,0" HorizontalAlignment="Left" Width="472" Height="684" VerticalAlignment="Top" Background="#FFE2E9EF">
             <Grid>
                 <Label   Name="labelHandwritingCanvas"                 Margin="30,33,0,0"       Height="43" Width="265"  HorizontalAlignment="Left" VerticalAlignment="Top" >Handwriting input:</Label>
-                <Canvas  Name="HandwritingCanvas"                      Margin="30,84,0,0"       Height="300" Width="300"  HorizontalAlignment="Left"  VerticalAlignment="Top" Background="#FFD3D8DD" MouseLeave="Handwriting_MouseLeave"/>
+                <Canvas  Name="HandwritingCanvas"                      Margin="30,84,0,0"       Height="300" Width="300"  HorizontalAlignment="Left"  VerticalAlignment="Top" Background="#FFD3D8DD" 
+                         MouseLeave="Handwriting_MouseLeave"
+                         MouseEnter="HandwritingCanvas_MouseEnter"/>
 
                 <Label   Name="labelClassicationTxt"                   Margin="365,32,0,0"      Height="43" Width="71" VerticalAlignment="Top" HorizontalAlignment="Left" >Results:</Label>
-                <Label   Name="labelClassicationResults"               Margin="374,80,0,0"      Height="45" Width="54"   HorizontalAlignment="Left" VerticalAlignment="Top" >---</Label>
-                <Label   Name="labelClassification"                    Margin="0,0,222,164" Height="91"  Width="116" HorizontalAlignment="Right" VerticalAlignment="Bottom" >---</Label>
+                <Label   Name="labelClassicationResults"               Margin="365,80,0,0"      Height="304" Width="63"   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Label   Name="labelClassification"                    Margin="0,0,230,154"     Height="91"  Width="116" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontSize="30"/>
+
+                <Button  Name="buttonTestCurrentTrainingImage"         Margin="30,570,0,0" Height="45" VerticalAlignment="Top" Click="buttonTestCurrentTrainingImage_Click"  HorizontalAlignment="Left" Width="217" Content="Test current training image" />
             </Grid>
         </GroupBox>
     </Grid>

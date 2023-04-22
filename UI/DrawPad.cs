@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Drawing;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -10,20 +10,19 @@ namespace UI
     class DrawPad
     {
         #region ------------- Properties ----------------------------------------------------------
-        public Image MyImage { get; set; }
-        public Image DisplayImage { get; set; }
-        public Size ImageSize { get => _imageSize; set => OnImageResize(value); }
-        public int LineWidth { get; set; }
-        public bool AlreadyDrawn { get; set; }
-        public bool UserHasDrawn { get; set; }
+        public Image  MyImage               { get; set; }
+        public Image  DisplayImage          { get; set; }
+        public Size   ImageSize             { get => _imageSize; set => OnImageResize(value); }
+        public int    LineWidth             { get; set; }
+        public bool   AlreadyDrawn          { get; set; }
+        public bool   UserHasDrawn          { get; set; }
         public Action OnUserHasDrawnAnImage { get; set; }
-
-        private Canvas _canvas;
         #endregion
 
 
 
         #region ------------- Fields --------------------------------------------------------------
+        private Canvas _canvas;
         private Size _imageSize;
         private System.Windows.Point? prevPoint = null;
         private Brush _brush = Brushes.White;
@@ -54,7 +53,6 @@ namespace UI
         public void ResetImage()
         {
             //this.MyImage = new Image(_imageSize.Width, _imageSize.Height);
-
             //this.AlreadyDrawn = false;
             //this.DisplayImage = this.MyImage;
             //this.Refresh();

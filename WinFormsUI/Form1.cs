@@ -138,7 +138,7 @@ namespace WinFormsUI
             if (int.TryParse(textBoxNeuronsInHiddenLayers.Text, out int neuronsInHiddenLayers))
                 neuronsInHiddenLayersEntered = true;
 
-            if (hiddenLayersEntered) _network.HiddenLayersCount = hiddenLayers;
+            if (hiddenLayersEntered         ) _network.HiddenLayersCount     = hiddenLayers;
             if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
 
             _network.Initialize();

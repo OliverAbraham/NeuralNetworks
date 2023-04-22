@@ -12,6 +12,10 @@
         public string             ID; // Name
         public int                LayerIndex;
         public NeuronType         Type;
+
+        /// <summary>
+        /// Input neurons to us
+        /// </summary>
         public Neuron[]           InputConnections;
         public int                InputConnectionsCount = 0;
         public Neuron[]           OutputConnections;
@@ -36,7 +40,7 @@
 
 
         #region ------------- Methods -------------------------------------------------------------
-        public void SetValue(Neuron sender, float value)
+        public void Activate(Neuron sender, float value)
         {
             if (Type == NeuronType.InputNeuron)
             {
@@ -100,9 +104,9 @@
             for (int i = 0; i < OutputConnections.Length; i++)
             {
                 if (!float.IsNaN(ActivationFunction(Activation)))
-                    OutputConnections[i].SetValue(this, ActivationFunction(Activation));
+                    OutputConnections[i].Activate(this, ActivationFunction(Activation));
                 else
-                    OutputConnections[i].SetValue(this, 0);
+                    OutputConnections[i].Activate(this, 0);
             }
         }
         #endregion

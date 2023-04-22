@@ -27,16 +27,17 @@
         public int      TrainingImageCount     { get; private set; } = 0;
                                                
         // Network structure                   
-        public int      NeuronsInInputLayer    { get; set; } = 28 * 28;
-        public int      HiddenLayersCount      { get; set; } = 3;
-        public int      NeuronsInHiddenLayers  { get; set; } = 16;
-        public int      NeuronsInOutputLayer   { get; set; } = 10;
+        public int      NeuronsInInputLayer    { get; set; }
+        public int      HiddenLayersCount      { get; set; }
+        public int      NeuronsInHiddenLayers  { get; set; }
+        public int      NeuronsInOutputLayer   { get; set; }
                                                
         // Training                            
         public float    TrainingSpeed          { get; set; } = 0.0005F;
         public int      StopAfterIterations    { get; set; }
         public int      StopAfterAccurracy     { get; set; }
         public int      TotalTrainingIterations => _brain.TotalTrainingIterations;
+        public bool     IsInitialized => _brain is not null;
         #endregion
 
 
@@ -118,7 +119,7 @@
         public void Initialize()
         {
             _brain = new Brain(NeuronsInInputLayer, NeuronsInOutputLayer, HiddenLayersCount, NeuronsInHiddenLayers, 
-                -0.3F, 0.3F, false, Neuron.ReLU);
+                -0.5F, 0.5F, false, Neuron.ReLU);
         }
 
         public void StartTraining(TrainingProgressHandler onProgress, TrainingFinishedHandler onFinished)
@@ -151,13 +152,11 @@
         public void LoadNetwork(string dataDirectory)
         {
             var fullFilename = Path.Combine(dataDirectory, "NetworkStructure.bin");
-            LoadNetworkFromFile(fullFilename);
-        }
-
-        private void LoadNetworkFromFile(string dataDirectory)
-        {
-            var fullFilename = Path.Combine(dataDirectory, "NetworkStructure.bin");
             _brain = new Brain(fullFilename);
+            NeuronsInInputLayer   = _brain.NeuronsInInputLayer;
+            HiddenLayersCount     = _brain.HiddenLayersCount;
+            NeuronsInHiddenLayers = _brain.NeuronsInHiddenLayers;
+            NeuronsInOutputLayer  = _brain.NeuronsInOutputLayer;
         }
 
         public int GetOutputClassification(float[] networkOutputs)
@@ -177,9 +176,18 @@
             return num;
         }
 
+        public float[] Think(byte[] image)
+        {
+            if (_brain is null)
+                throw new Exception("brain is not initialized");
+            return _brain.Think(MnistTrainingDataLoader.ByteToFloat(image));
+        }
+
         public float[] Think(float[] inputValues)
         {
-            return _brain.Think(inputValues, Neuron.ReLU);
+            if (_brain is null)
+                throw new Exception("brain is not initialized");
+            return _brain.Think(inputValues);
         }
         #endregion
 
@@ -201,7 +209,7 @@
                 var currentTrainingImage = _trainingImages[currentTrainingImageIndex];
                 var currentTrainingLabel = _trainingLabels[currentTrainingImageIndex];
 
-                float[] output = _brain.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage), Neuron.ReLU);
+                float[] output = _brain.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage));
                 var outputNum = GetOutputClassification(output);
                 float cost = CalculateCost(output, currentTrainingLabel);
                 Backpropagate(_brain, TrainingSpeed, outputNum, currentTrainingLabel);

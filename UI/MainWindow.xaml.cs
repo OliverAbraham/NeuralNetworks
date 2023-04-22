@@ -124,7 +124,8 @@ namespace UI
 
             sliderTrainingImage.Minimum = 0;
             sliderTrainingImage.Maximum = _network.TrainingImageCount - 1;
-            CurrentTrainingImage.Source = CreateImageFromBytes(_network.GetTrainingImageById(0));
+            sliderTrainingImage.Value = 0;
+            sliderTrainingImage_ValueChanged(null,null);
         }
 
         private void SetStatusBeforeLoading()
@@ -152,6 +153,13 @@ namespace UI
             int rawStride = (width * pf.BitsPerPixel + 7) / 8;
             var bitmapSource = BitmapSource.Create(width, height, 96, 96, pf, null, bytes, rawStride);
             return bitmapSource;
+        }
+
+        private byte[] CreateBytesFromImage(BitmapSource image)
+        {
+            var bytes = new byte[28 * 28];
+            image.CopyPixels(bytes, 28, 0);
+            return bytes;
         }
         #endregion
         #region ------------- Structure -----------------------------------------------------------
@@ -542,57 +550,63 @@ namespace UI
             //Controls.Add(_drawPad);
         }
 
+        private void HandwritingCanvas_MouseEnter(object sender, MouseEventArgs e)
+        {
+            HandwritingCanvas.Children.Clear();
+        }
+
         private void Handwriting_MouseLeave(object sender, MouseEventArgs e)
         {
-            var bitmap = GetBitmapFromCanvas(HandwritingCanvas, 28, 28);
-            //var stream = SaveBitmapToMemoryStream(bitmap);
-            CurrentTrainingImage.Source = bitmap;
+            if (!_network.IsInitialized)
+                return;
 
-            //var outputNeurons = _network.Think(inputValues);
-            //DisplayClassification(outputNeurons);
+            var renderTargetBitmap = GetBitmapFromCanvas(HandwritingCanvas, 28, 28);
+            CurrentTrainingImage.Source = renderTargetBitmap;
 
-            //SaveBitmapToFile(bitmap, "handwriting.bmp");
-            //var converter = new ImageSourceConverter();
-            //var image = converter.ConvertFromString("handwriting.bmp") as ImageSource;
-            //CurrentTrainingImage.Source = image;
-            //File.Delete("handwriting.bmp");
+            System.Drawing.Bitmap drawingBitmap = ConvertRenderTargetBitmapToSystemDrawingBitmap(renderTargetBitmap);
+            var imageBytes = ConvertColorBitmapTo1dimensionalBytesArray(drawingBitmap);
+            var outputNeurons = _network.Think(imageBytes);
+            DisplayClassification(outputNeurons);
         }
 
-        private void buttonCheck_Click(object sender, EventArgs e)
+        private void buttonTestCurrentTrainingImage_Click(object sender, RoutedEventArgs e)
         {
-//            var inputValues = GetHandWrittenImage();
-//            if (inputValues is null)
-//                return;
-
-//            _currentTrainingImage = Bitmap.FromFile("img.bmp") as Bitmap;
-//            this.currentTrainingImage.Image = _currentTrainingImage.Clone() as Bitmap;
-//            _currentTrainingImage = null;
-            //Refresh();
-
-            //var outputNeurons = _network.Think(inputValues);
-
-            //DisplayClassification(outputNeurons);
+            if (!_network.IsInitialized)
+                return;
+            var bitmap = CurrentTrainingImage.Source as BitmapSource;
+            var imageBytes = CreateBytesFromImage(bitmap);
+            //var imageBytes = ConvertColorBitmapTo1dimensionalBytesArray(bitmap);
+            var outputNeurons = _network.Think(imageBytes);
+            DisplayClassification(outputNeurons);
         }
-
-//       private float[] GetHandWrittenImage()
-//       {
-//           _drawPad.RescaleImage(_network.ImageSize, _network.ImageSize);
-//           _drawPad.CenterImage();
-//           _drawPad.Image.Save(@"img.png", System.Drawing.Imaging.ImageFormat.Png);
-//           _drawPad.Image.Save(@"img.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
-//           float[] handwrittenImage = _drawPad.ImageToFloat();
-//           return handwrittenImage;
-//       }
 
         private void DisplayClassification(float[] outputNeurons)
         {
-            var results = "";
-            for (int i = 0; i < outputNeurons.Length; i++)
-                results += i + ": " + outputNeurons[i].ToString("0.00") + "\n";
+            string outputNeuronsAsString = ConvertArrayToString(outputNeurons);
 
-            labelClassicationResults.Content = results;
+            labelClassicationResults.Content = outputNeuronsAsString;
             labelClassification.Content = _network.GetOutputClassification(outputNeurons).ToString();
             _drawPad.ResetImage();
+        }
+
+        private static string ConvertArrayToString(float[] outputNeurons)
+        {
+            var results = "";
+
+            for (int i = 0; i < outputNeurons.Length; i++)
+                results += i + ": " + outputNeurons[i].ToString("0.00") + "\n";
+            
+            return results;
+        }
+
+        private byte[] ConvertBitmapPointsToListOfBytes(RenderTargetBitmap bitmap)
+        {
+            var width  = Convert.ToInt32(bitmap.Width);
+            var height = Convert.ToInt32(bitmap.Height);
+
+            var result = new byte[width*height];
+            bitmap.CopyPixels(result, width, 0);
+            return result;
         }
 
         private RenderTargetBitmap GetBitmapFromCanvas(Canvas canvas, int width, int height)
@@ -608,6 +622,106 @@ namespace UI
             visual.Transform = new ScaleTransform(width / canvas.ActualWidth, height / canvas.ActualHeight);
             renderBitmap.Render(visual);
             return renderBitmap;
+        }
+
+        private System.Drawing.Bitmap ConvertColorBitmapToGrayscale(System.Drawing.Bitmap bitmap) 
+        {
+            var result = new System.Drawing.Bitmap(bitmap.Width, bitmap.Height, System.Drawing.Imaging.PixelFormat.Format8bppIndexed);
+            for (int x = 0; x < bitmap.Width; x++)
+            {
+                for (int y = 0; y < bitmap.Height; y++) 
+                {
+                    var grayColor = ConvertRgbValueToGrayscaleValue(bitmap.GetPixel(x, y));
+                    result.SetPixel(x, y, grayColor);
+                }
+            }
+            return result;
+        }
+
+        private byte[] ConvertColorBitmapTo1dimensionalBytesArray(System.Drawing.Bitmap bitmap) 
+        {
+            var result = new byte[bitmap.Width * bitmap.Height];
+            int i=0;
+
+            for (int x = 0; x < bitmap.Width; x++)
+                for (int y = 0; y < bitmap.Height; y++) 
+                    result[i++] = (byte)ConvertRgbValueToGrayscaleByte(bitmap.GetPixel(x, y));
+
+            return result;
+        }
+
+        private System.Drawing.Color ConvertRgbValueToGrayscaleValue(System.Drawing.Color color) 
+        {
+            var level = (byte)((color.R + color.G + color.B) / 3);
+            var result = System.Drawing.Color.FromArgb(level, level, level);
+            return result;
+        }
+
+        private byte ConvertRgbValueToGrayscaleByte(System.Drawing.Color color) 
+        {
+            var level = (byte)((color.R + color.G + color.B) / 3);
+            return level;
+        }
+
+        private byte[] ConvertGrayscaleBitmapTo1dimensionalBytesArray(System.Drawing.Bitmap bitmap) 
+        {
+            var result = new byte[bitmap.Width * bitmap.Height];
+            var i = 0;
+
+            for (int x = 0; x < bitmap.Width; x++)
+                for (int y = 0; y < bitmap.Height; y++)
+                    result[i++] = (byte)(bitmap.GetPixel(x, y).R / 255);
+            
+            return result;
+        }
+
+        private byte[,] ConvertGrayscaleBitmapTo2dimensionalBytesArray(System.Drawing.Bitmap bitmap) 
+        {
+            var result = new byte[bitmap.Width, bitmap.Height];
+
+            for (int x = 0; x < bitmap.Width; x++)
+                for (int y = 0; y < bitmap.Height; y++)
+                    result[x, y] = (byte)(bitmap.GetPixel(x, y).R / 255);
+            
+            return result;
+        }
+
+        private double[,] ConvertGrayscaleBitmapTo2dimensionalDoublesArray(System.Drawing.Bitmap bitmap) 
+        {
+            var result = new double[bitmap.Width, bitmap.Height];
+            
+            for (int x = 0; x < bitmap.Width; x++)
+                for (int y = 0; y < bitmap.Height; y++)
+                    result[x, y] = (double)bitmap.GetPixel(x, y).R / 255;
+            
+            return result;
+        }
+
+        private System.Drawing.Bitmap LoadBitmapFromFile(string filename)
+        {
+            return new System.Drawing.Bitmap(filename);
+        }
+
+        private System.Drawing.Bitmap ConvertRenderTargetBitmapToSystemDrawingBitmap(RenderTargetBitmap renderTargetBitmap)
+        {
+            using (MemoryStream fs = new MemoryStream())
+            {
+                BitmapEncoder encoder = new BmpBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+                encoder.Save(fs);
+                fs.Flush();
+                fs.Position = 0;
+
+                var bitmap = new System.Drawing.Bitmap(fs);
+                return bitmap;
+            }
+        }
+
+        private System.Drawing.Bitmap ConvertRenderTargetBitmapToSystemDrawingBitmapOld(RenderTargetBitmap renderTargetBitmap)
+        {
+            SaveBitmapToFile(renderTargetBitmap, @"handwriting.bmp");
+            var drawingBitmap = LoadBitmapFromFile(@"handwriting.bmp");
+            return drawingBitmap;
         }
 
         private void SaveBitmapToMemoryStream(RenderTargetBitmap renderBitmap, string path)
@@ -670,6 +784,6 @@ namespace UI
                 handler(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #endregion       
+        #endregion
     }
 }

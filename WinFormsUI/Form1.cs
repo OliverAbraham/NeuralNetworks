@@ -27,7 +27,7 @@ namespace WinFormsUI
             textBoxNeuronsInInputLayer.Text = _network.NeuronsInInputLayer.ToString();
             textBoxHiddenLayers.Text = _network.HiddenLayersCount.ToString();
             textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
-            textBoxNeuronsInOutputLayer.Text = _network.NeuronsInOutputLayer.ToString();
+            textBoxNeuronsInOutputLayer.Text = _network.NeuronsInOutputLayers.ToString();
             textBoxTrainingSpeed.Text = _network.TrainingSpeed.ToString();
         }
 
@@ -138,10 +138,7 @@ namespace WinFormsUI
             if (int.TryParse(textBoxNeuronsInHiddenLayers.Text, out int neuronsInHiddenLayers))
                 neuronsInHiddenLayersEntered = true;
 
-            if (hiddenLayersEntered         ) _network.HiddenLayersCount     = hiddenLayers;
-            if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
-
-            _network.Initialize();
+            //_network.Initialize();
         }
 
         private void buttonStartTraining_Click(object sender, EventArgs e)
@@ -180,8 +177,8 @@ namespace WinFormsUI
 
             _network.StopAfterIterations = 0;
             _network.StopAfterAccurracy = 0;
-            if (hiddenLayersEntered) _network.HiddenLayersCount = hiddenLayers;
-            if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
+            //if (hiddenLayersEntered) _network.HiddenLayersCount = hiddenLayers;
+            //if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
             if (stopAfterIterationsEntered) _network.StopAfterIterations = iterations;
             if (stopAfterAccurracyEntered) _network.StopAfterAccurracy = accuracy;
             if (trainingSpeedEntered) _network.TrainingSpeed = trainingSpeed;

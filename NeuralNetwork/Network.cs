@@ -1,4 +1,6 @@
-﻿namespace NeuralNetwork
+﻿using Newtonsoft.Json;
+
+namespace NeuralNetwork
 {
     public class Network
     {
@@ -27,31 +29,30 @@
         public int      TrainingImageCount     { get; private set; } = 0;
                                                
         // Network structure                   
-        public int      NeuronsInInputLayer    { get; set; }
-        public int      HiddenLayersCount      { get; set; }
-        public int      NeuronsInHiddenLayers  { get; set; }
-        public int      NeuronsInOutputLayer   { get; set; }
+        public int      NeuronsInInputLayer    => _structure.NeuronsInInputLayer;  
+        public int      HiddenLayersCount      => _structure.HiddenLayersCount;    
+        public int      NeuronsInHiddenLayers  => _structure.NeuronsInHiddenLayers;
+        public int      NeuronsInOutputLayers  => _structure.NeuronsInOutputLayers; 
                                                
         // Training                            
         public float    TrainingSpeed          { get; set; } = 0.0005F;
         public int      StopAfterIterations    { get; set; }
         public int      StopAfterAccurracy     { get; set; }
-        public int      TotalTrainingIterations => _brain.TotalTrainingIterations;
-        public bool     IsInitialized => _brain is not null;
+        public int      TotalTrainingIterations => _structure.TotalTrainingIterations;
+        public bool     IsInitialized => _structure is not null;
         #endregion
 
 
 
         #region ------------- Fields --------------------------------------------------------------
-        private Brain    _brain;
+        private Structure _structure;
         
         // training data
         private byte[][] _trainingImages;
         private byte[]   _trainingLabels;
         
         private bool     _trainingInProgress;
-        private bool     _trainingDataLoadInProgress;
-        private int      _trainingStateIsGood = 0;// kleine Statistik um die Akkuratheit zu messen
+        private int      _numberOfGoodOutputs = 0;// kleine Statistik um die Akkuratheit zu messen
         private Thread   _trainingThread;
         #endregion
 
@@ -82,7 +83,6 @@
                 }
             }
 
-            _trainingDataLoadInProgress = true;
             Thread loadThread = new Thread(new ThreadStart(loadData));
             loadThread.Start();
 
@@ -104,7 +104,6 @@
                 //    _trainingLabels = MnistTrainingDataLoader.LoadLabelFile(Path.Combine(_trainingDataDirectory, trainingFiles[3]), _trainingIterations);
                 //}
 
-                _trainingDataLoadInProgress = false;
                 onLoadFinished();
             }
 
@@ -116,17 +115,14 @@
             return _trainingImages[id % TrainingImageCount];
         }
 
-        public void Initialize()
+        public void Initialize(int neuronsInInputLayer, int hiddenLayersCount, int neuronsInHiddenLayers, int neuronsInOutputLayer)
         {
-            _brain = new Brain(NeuronsInInputLayer, NeuronsInOutputLayer, HiddenLayersCount, NeuronsInHiddenLayers, 
+            _structure = new Structure(neuronsInInputLayer, hiddenLayersCount, neuronsInHiddenLayers, neuronsInOutputLayer,
                 -0.5F, 0.5F, false, Neuron.ReLU);
         }
 
         public void StartTraining(TrainingProgressHandler onProgress, TrainingFinishedHandler onFinished)
         {
-            if (_brain is null)
-                Initialize();
-
             var callbacks = new Callbacks(onProgress, onFinished);
 
             if (_trainingThread is null)
@@ -141,22 +137,21 @@
 
         public void SaveNetwork(string dataDirectory)
         {
-            var path = Path.Combine(dataDirectory, "NetworkStructure.bin");
-            _brain.SaveNetworkToFile(path);
-
-            //path = Path.Combine(dataDirectory, @"save.brain");
-            //File.Create(path).Close();
-            //File.WriteAllText(path, _brain.SerializeNetwork());
+            var path = Path.Combine(dataDirectory, "NetworkStructure.json");
+            var serializedStructure = JsonConvert.SerializeObject(_structure);
+            File.WriteAllText(path, serializedStructure);
         }
 
         public void LoadNetwork(string dataDirectory)
         {
-            var fullFilename = Path.Combine(dataDirectory, "NetworkStructure.bin");
-            _brain = new Brain(fullFilename);
-            NeuronsInInputLayer   = _brain.NeuronsInInputLayer;
-            HiddenLayersCount     = _brain.HiddenLayersCount;
-            NeuronsInHiddenLayers = _brain.NeuronsInHiddenLayers;
-            NeuronsInOutputLayer  = _brain.NeuronsInOutputLayer;
+            var fullFilename = Path.Combine(dataDirectory, "NetworkStructure.json");
+            var serializedStructure = File.ReadAllText(fullFilename);
+            var data = (Structure)JsonConvert.DeserializeObject<Structure>(serializedStructure);
+            
+            _structure = new Structure(data.NeuronsInInputLayer, data.HiddenLayersCount, data.NeuronsInHiddenLayers, data.NeuronsInOutputLayers,
+                -0.5F, 0.5F, false, Neuron.ReLU);
+
+            _structure.CopyWeightsAndBiasesFrom(data);
         }
 
         public int GetOutputClassification(float[] networkOutputs)
@@ -178,16 +173,16 @@
 
         public float[] Think(byte[] image)
         {
-            if (_brain is null)
+            if (_structure is null)
                 throw new Exception("brain is not initialized");
-            return _brain.Think(MnistTrainingDataLoader.ByteToFloat(image));
+            return _structure.Think(MnistTrainingDataLoader.ByteToFloat(image));
         }
 
         public float[] Think(float[] inputValues)
         {
-            if (_brain is null)
+            if (_structure is null)
                 throw new Exception("brain is not initialized");
-            return _brain.Think(inputValues);
+            return _structure.Think(inputValues);
         }
         #endregion
 
@@ -201,35 +196,37 @@
             var iteration = 0;
             var totalSuccess = 0;
             int totalAccuracy = 0;
+            int calculateAccuracyEvery = 100;
 
             _trainingInProgress = true;
             while (_trainingInProgress)
             {
                 var currentTrainingImageIndex = iteration % TrainingImageCount;
                 var currentTrainingImage = _trainingImages[currentTrainingImageIndex];
-                var currentTrainingLabel = _trainingLabels[currentTrainingImageIndex];
+                var expectedOutput       = _trainingLabels[currentTrainingImageIndex];
 
-                float[] output = _brain.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage));
-                var outputNum = GetOutputClassification(output);
-                float cost = CalculateCost(output, currentTrainingLabel);
-                Backpropagate(_brain, TrainingSpeed, outputNum, currentTrainingLabel);
-                int expected = currentTrainingLabel;
+                float[] output = _structure.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage));
+                var currentOutput = GetOutputClassification(output);
+                float cost = CalculateCost(output, expectedOutput);
+
+                _structure.Backpropagate(TrainingSpeed, currentOutput, expectedOutput);
 
                 // Normalerweise trennt man die Prüfdaten von den Trainingsdaten,
                 // um zu gucken ob das Netz nicht nur auswendig lernt, sondern auch generalisiert
-                if (iteration % 1000 == 0)
-                    _trainingStateIsGood = 0; //reset statistic every 1000 steps
-                if (expected == outputNum)
+                if (iteration % calculateAccuracyEvery == 0)
+                    _numberOfGoodOutputs = 0; //reset statistic every "calculateAccuracyEvery" steps
+
+                if (expectedOutput == currentOutput)
                 {
                     totalSuccess++;
-                    _trainingStateIsGood++;
+                    _numberOfGoodOutputs++;
                 }
 
-                double accuracy = _trainingStateIsGood / (iteration % 1000 + 1.0);
+                double accuracy = _numberOfGoodOutputs / (iteration % calculateAccuracyEvery + 1.0);
                 int percent = (int)(100 * accuracy);
                 totalAccuracy = Convert.ToInt32(totalSuccess * 100 / (iteration + 1));
 
-                _brain.TotalTrainingIterations++;
+                _structure.TotalTrainingIterations++;
                 iteration++;
 
                 if ((iteration % 100) == 0)
@@ -240,7 +237,7 @@
                     UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, currentTrainingImageIndex);
                     break;
                 }
-                if (StopAfterAccurracy > 0 && iteration >= 1000 & totalAccuracy >= StopAfterAccurracy)
+                if (StopAfterAccurracy > 0 && iteration >= calculateAccuracyEvery & totalAccuracy >= StopAfterAccurracy)
                 {
                     UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, currentTrainingImageIndex);
                     break;
@@ -277,150 +274,56 @@
             return cost;
         }
 
-        private float[][][] GetSumOfChanges(float[][][] total, float[][][] current)
-        {
-            float[][][] sum = new float[total.Length][][];
-
-            for (int layerNum = 0; layerNum < total.Length; layerNum++)
-            {
-                sum[layerNum] = new float[total[layerNum].Length][];
-
-                for (int neuronNum = 0; neuronNum < total[layerNum].Length; neuronNum++)
-                {
-                    sum[layerNum][neuronNum] = new float[total[layerNum][neuronNum].Length];
-
-                    for (int weightNum = 0; weightNum < total[layerNum][neuronNum].Length; weightNum++)
-                    {
-                        sum[layerNum][neuronNum][weightNum] = total[layerNum][neuronNum][weightNum] + current[layerNum][neuronNum][weightNum];
-                    }
-                }
-            }
-
-            return sum;
-        }
-
-        private void ApplyChanges(Brain brain, float[][][][] changes)
-        {
-            Neuron[][] layers = new Neuron[brain.HiddenLayers.Length + 1][];
-            Array.Copy(brain.AllLayers, 1, layers, 0, brain.AllLayers.Length - 1);
-
-            for (int layerNum = 0; layerNum < layers.Length; layerNum++)
-            {
-                Neuron[] layer = layers[layerNum];
-
-                for (int neuronNum = 0; neuronNum < layer.Length; neuronNum++)
-                {
-                    Neuron neuron = layer[neuronNum];
-
-                    for (int weightNum = 0; weightNum < neuron.Weights.Length; weightNum++)
-                    {
-                        float change = 0.0F;
-
-                        for (int i = 0; i < changes.Length; i++)
-                        {
-                            change += changes[i][layerNum][neuronNum][weightNum];
-                        }
-                        change = change / changes.Length;
-
-                        neuron.Weights[weightNum] += change;
-                    }
-                }
-            }
-        }
-
-        private float[][][] Backpropagate(Brain brain, float TweakAmount, int outputNum, int expectedNum)
-        {
-            Neuron[][] layers = new Neuron[brain.HiddenLayers.Length + 1][];
-            Array.Copy(brain.AllLayers, 1, layers, 0, brain.AllLayers.Length - 1);
-            float[] targetOutput = new float[10];
-            targetOutput[expectedNum] = 1.0F;
-
-            float[][][] allChanges = new float[layers.Length][][];
-
-            for (int layerNum = layers.Length - 1; layerNum >= 0; layerNum--)
-            {
-                Neuron[] layer = layers[layerNum];
-                float[][] neuronChanges = new float[layer.Length][];
-
-                for (int neuronNum = 0; neuronNum < layer.Length; neuronNum++)
-                {
-                    Neuron neuron = layer[neuronNum];
-                    float[] weightChanges = new float[neuron.Weights.Length];
-
-                    for (int i = 0; i < neuron.Weights.Length; i++)
-                    {
-                        float deltaW = 0.0F;
-                        if (neuron.Type == Neuron.NeuronType.HiddenNeuron)
-                        {
-                            float delta_i = Delta_i(layers, layerNum, neuronNum, targetOutput);
-                            float activation_j = brain.AllLayers[layerNum][i].Activation;
-
-                            deltaW = DeltaW(TweakAmount, delta_i, activation_j);
-                        }
-                        else
-                        {
-                            float delta_i = Delta_i(neuron, targetOutput[neuronNum], Neuron.ReLU(neuron.Activation));
-                            float activation_j = brain.AllLayers[layerNum][i].Activation;
-                            deltaW = DeltaW(TweakAmount, delta_i, activation_j);
-                        }
-
-                        if (!float.IsNaN(deltaW))
-                        {
-                            weightChanges[i] = deltaW;
-                            neuron.Weights[i] += deltaW;
-                        }
-                    }
-                    neuronChanges[neuronNum] = weightChanges;
-                }
-                allChanges[layerNum] = neuronChanges;
-            }
-
-            return allChanges;
-        }
-
-        private float DeltaW(float tweakAmount, float delta_i, float activation_j)
-        {
-            return tweakAmount * delta_i * activation_j;
-        }
-
-        private float Delta_i(Neuron neuron, float targetOutput, float currentOutput)
-        {
-            neuron.Delta_i = derivative_ReLU(neuron.Activation) * (targetOutput - currentOutput);
-            return neuron.Delta_i;
-        }
-
-        private float Delta_i(Neuron[][] layers, int targetLayer, int targetNeuron, float[] targetOutput)
-        {
-            Neuron neuron = layers[targetLayer][targetNeuron];
-            int prevLayer = targetLayer + 1;
-
-            float sum = 0.0F;
-            for (int i = 0; i < layers[prevLayer].Length; i++)
-            {
-                Neuron prevNeuron = layers[prevLayer][i];
-                sum += prevNeuron.Delta_i * prevNeuron.Weights[targetNeuron];
-            }
-            neuron.Delta_i = derivative_ReLU(neuron.Activation) * sum;
-
-            return neuron.Delta_i;
-        }
-
-        private float derivative_tanh(float x)
-        {
-            return (float)((1 - Math.Tanh(x)));
-        }
-
-        private float derivative_ReLU(double x)
-        {
-            if(x > 0)
-            {
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
+        //private float[][][] GetSumOfChanges(float[][][] total, float[][][] current)
+        //{
+        //    float[][][] sum = new float[total.Length][][];
+        //
+        //    for (int layerNum = 0; layerNum < total.Length; layerNum++)
+        //    {
+        //        sum[layerNum] = new float[total[layerNum].Length][];
+        //
+        //        for (int neuronNum = 0; neuronNum < total[layerNum].Length; neuronNum++)
+        //        {
+        //            sum[layerNum][neuronNum] = new float[total[layerNum][neuronNum].Length];
+        //
+        //            for (int weightNum = 0; weightNum < total[layerNum][neuronNum].Length; weightNum++)
+        //            {
+        //                sum[layerNum][neuronNum][weightNum] = total[layerNum][neuronNum][weightNum] + current[layerNum][neuronNum][weightNum];
+        //            }
+        //        }
+        //    }
+        //
+        //    return sum;
+        //}
+        //
+        //private void ApplyChanges(Brain brain, float[][][][] changes)
+        //{
+        //    Neuron[][] layers = new Neuron[brain.HiddenLayers.Length + 1][];
+        //    Array.Copy(brain.AllLayers, 1, layers, 0, brain.AllLayers.Length - 1);
+        //
+        //    for (int layerNum = 0; layerNum < layers.Length; layerNum++)
+        //    {
+        //        Neuron[] layer = layers[layerNum];
+        //
+        //        for (int neuronNum = 0; neuronNum < layer.Length; neuronNum++)
+        //        {
+        //            Neuron neuron = layer[neuronNum];
+        //
+        //            for (int weightNum = 0; weightNum < neuron.Weights.Length; weightNum++)
+        //            {
+        //                float change = 0.0F;
+        //
+        //                for (int i = 0; i < changes.Length; i++)
+        //                {
+        //                    change += changes[i][layerNum][neuronNum][weightNum];
+        //                }
+        //                change = change / changes.Length;
+        //
+        //                neuron.Weights[weightNum] += change;
+        //            }
+        //        }
+        //    }
+        //}
         #endregion
     }
 }

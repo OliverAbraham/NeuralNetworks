@@ -3,33 +3,43 @@
     public class Neuron : ICloneable
     {
         #region ------------- Types and constants -------------------------------------------------
-        public enum NeuronType { HiddenNeuron, InputNeuron, OutputNeuron }
+        public enum NeuronType { InputNeuron, HiddenNeuron, OutputNeuron }
         #endregion
 
 
 
         #region ------------- Properties ----------------------------------------------------------
-        public string             ID; // Name
-        public int                LayerIndex;
-        public NeuronType         Type;
-
-        /// <summary>
-        /// Input neurons to us
-        /// </summary>
-        public Neuron[]           Inputs;
-        public int                InputCount = 0;
-        public Neuron[]           Outputs;
-        public float              Activation = 0.0F;
-        public float              Bias;
-        public float[]            Weights;
-        public int                ReceivedInputs = 0;
-        public Func<float, float> ActivationFunction;
-        public float              Delta_i;
+        public float              Bias    { get; set; }
+        public float[]            Weights { get; set; }
         #endregion
 
 
 
         #region ------------- Fields --------------------------------------------------------------
+        public int                _layer;
+        public int                _layerIndex;
+        public NeuronType         _type;
+
+        [Newtonsoft.Json.JsonIgnore]
+        public Neuron[]           _inputs;
+
+        [Newtonsoft.Json.JsonIgnore]
+        public Neuron[]           _outputs;
+
+        [Newtonsoft.Json.JsonIgnore]
+        public Func<float, float> _activationFunction;
+
+        [Newtonsoft.Json.JsonIgnore]
+        public int                _inputCount = 0;
+
+        [Newtonsoft.Json.JsonIgnore]
+        public float              _activation = 0.0F;
+
+        [Newtonsoft.Json.JsonIgnore]
+        public int                _receivedInputs = 0;
+
+        [Newtonsoft.Json.JsonIgnore]
+        public float              _delta_i;
         #endregion
 
 
@@ -42,25 +52,25 @@
         #region ------------- Methods -------------------------------------------------------------
         public void Activate(Neuron sender, float value)
         {
-            if (Type == NeuronType.InputNeuron)
+            if (_type == NeuronType.InputNeuron)
             {
-                Activation = value;
+                _activation = value;
                 ActivateNextLayer();
             }
 
-            else if (Type == NeuronType.OutputNeuron)
+            else if (_type == NeuronType.OutputNeuron)
             {
-                int i = sender.LayerIndex;
-                Activation += value * Weights[i];
+                int i = sender._layerIndex;
+                _activation += value * Weights[i];
             }
 
             else
             {
-                int i = sender.LayerIndex;
-                Activation += value * Weights[i];
-                ReceivedInputs++;
+                int i = sender._layerIndex;
+                _activation += value * Weights[i];
+                _receivedInputs++;
 
-                if (ReceivedInputs == Inputs.Length)
+                if (_receivedInputs == _inputs.Length)
                 {
                     ActivateNextLayer();
                 }
@@ -80,12 +90,11 @@
         public object Clone()
         {
             Neuron neuron             = new Neuron();
-            neuron.Type               = this.Type;
-            neuron.ID                 = this.ID;
-            neuron.LayerIndex         = this.LayerIndex;
+            neuron._type               = this._type;
+            neuron._layerIndex         = this._layerIndex;
             neuron.Bias               = this.Bias;
             neuron.Weights             = new float[this.Weights.Length];
-            neuron.ActivationFunction = this.ActivationFunction;
+            neuron._activationFunction = this._activationFunction;
 
             for (int i = 0; i < Weights.Length; i++)
             {
@@ -101,12 +110,12 @@
         #region ------------- Implementation ------------------------------------------------------
         private void ActivateNextLayer()
         {
-            for (int i = 0; i < Outputs.Length; i++)
+            for (int i = 0; i < _outputs.Length; i++)
             {
-                if (!float.IsNaN(ActivationFunction(Activation)))
-                    Outputs[i].Activate(this, ActivationFunction(Activation));
+                if (!float.IsNaN(_activationFunction(_activation)))
+                    _outputs[i].Activate(this, _activationFunction(_activation));
                 else
-                    Outputs[i].Activate(this, 0);
+                    _outputs[i].Activate(this, 0);
             }
         }
         #endregion

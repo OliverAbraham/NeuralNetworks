@@ -169,16 +169,12 @@ namespace UI
 
         private void InitNetworkStructureAfterLoad()
         {
-            _network.NeuronsInInputLayer   = _network.TrainingImageSize * _network.TrainingImageSize;
-            _network.NeuronsInHiddenLayers = 16;
-            _network.HiddenLayersCount     = 3;
-            _network.NeuronsInOutputLayer  = 10;
-            _network.Initialize();
+            _network.Initialize(_network.TrainingImageSize * _network.TrainingImageSize, 3, 16, 10);
 
             textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer  .ToString();
             textBoxHiddenLayers         .Text = _network.HiddenLayersCount    .ToString();
             textBoxNeuronsInHiddenLayers.Text = _network.NeuronsInHiddenLayers.ToString();
-            textBoxNeuronsInOutputLayer .Text = _network.NeuronsInOutputLayer .ToString();
+            textBoxNeuronsInOutputLayer .Text = _network.NeuronsInOutputLayers .ToString();
 
             DrawStructure();
         }
@@ -186,7 +182,7 @@ namespace UI
         private void buttonResetNetwork_Click(object sender, EventArgs e)
         {
             var inputLayersEntered = false;
-            if (int.TryParse(textBoxNeuronsInInputLayer.Text, out int inputNeurons))
+            if (int.TryParse(textBoxNeuronsInInputLayer.Text, out int neuronsInInputLayer))
                 inputLayersEntered  = true;
 
             var hiddenLayersEntered = false;
@@ -201,12 +197,8 @@ namespace UI
             if (int.TryParse(textBoxNeuronsInOutputLayer.Text, out int neuronsInOutputLayer))
                 neuronsInOutputLayerEntered = true;
 
-            if (inputLayersEntered          ) _network.NeuronsInInputLayer   = inputNeurons;
-            if (hiddenLayersEntered         ) _network.HiddenLayersCount     = hiddenLayers;
-            if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
-            if (neuronsInOutputLayerEntered ) _network.NeuronsInOutputLayer  = neuronsInOutputLayer;
+            _network.Initialize(neuronsInInputLayer, hiddenLayers, neuronsInHiddenLayers, neuronsInOutputLayer);
 
-            _network.Initialize();
             DrawStructure();
             _accuracyChart.Clear();
         }
@@ -258,7 +250,7 @@ namespace UI
         {
             var x = (1 - _margin) * canvasStructure.Width;
             var y = (canvasStructure.Height / 2) - (_totalHeight / 2);
-            _outputNeuronPositions = DrawNCirclesVertically(x, y, _totalHeight, _network.NeuronsInOutputLayer, Brushes.Black);
+            _outputNeuronPositions = DrawNCirclesVertically(x, y, _totalHeight, _network.NeuronsInOutputLayers, Brushes.Black);
 
             DrawNLines(_hiddenNeuronPositions[_network.HiddenLayersCount-1], _outputNeuronPositions, Brushes.Black);
         }
@@ -336,17 +328,29 @@ namespace UI
 
         private void buttonLoadNetwork_Click(object sender, RoutedEventArgs e)
         {
-            _network.LoadNetwork(_trainingDataDirectory);
-            labelStatus.Content = "Network loaded.";
-            //_drawPad.IsEnabled = true;
-            //_drawPad.OnUserHasDrawnAnImage = OnUserHasDrawnAnImage;
+            try
+            {
+                _network.LoadNetwork(_trainingDataDirectory);
+                labelStatus.Content = "Network loaded.";
+                labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void buttonSaveNetwork_Click(object sender, RoutedEventArgs e)
         {
-            _network.SaveNetwork(_trainingDataDirectory);
-            labelStatus.Content = "Network saved.";
-            //_drawPad.IsEnabled = true;
+            try
+            {
+                _network.SaveNetwork(_trainingDataDirectory);
+                labelStatus.Content = "Network saved.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
         #endregion
         #region ------------- Training ------------------------------------------------------------
@@ -403,8 +407,6 @@ namespace UI
 
             _network.StopAfterIterations = 0;
             _network.StopAfterAccurracy = 0;
-            if (hiddenLayersEntered         ) _network.HiddenLayersCount     = hiddenLayers;
-            if (neuronsInHiddenLayersEntered) _network.NeuronsInHiddenLayers = neuronsInHiddenLayers;
             if (stopAfterIterationsEntered  ) _network.StopAfterIterations   = iterations;
             if (stopAfterAccurracyEntered   ) _network.StopAfterAccurracy    = accuracy;
             if (trainingSpeedEntered        ) _network.TrainingSpeed         = trainingSpeed;
@@ -502,8 +504,8 @@ namespace UI
         private void SetButtonsForTrainingProgress()
         {
             textBoxNeuronsInInputLayer  .IsEnabled = false;
-            textBoxNeuronsInHiddenLayers.IsEnabled = false;
-            textBoxHiddenLayers         .IsEnabled = false;
+            //textBoxNeuronsInHiddenLayers.IsEnabled = false;
+            //textBoxHiddenLayers         .IsEnabled = false;
             textBoxNeuronsInOutputLayer .IsEnabled = false;
             textBoxStopAfterIterations  .IsEnabled = false;
             textBoxStopIfAccuracyIs     .IsEnabled = false;
@@ -537,17 +539,6 @@ namespace UI
         #region ------------- Test ----------------------------------------------------------------
         private void TestInit()
         {
-        }
-
-        private void InitHandwritingDrawPad()
-        {
-            //_drawPad = new DrawPad();
-            //_drawPad.Location = new Point(labelHandwritingInput.Left, 50);
-            //_drawPad.Size = new Size(600, 600);
-            //_drawPad.ImageSize = new Size(600, 600);
-            //_drawPad.LineWidth = 25;
-            //_drawPad.BackColor = Color.Black;
-            //Controls.Add(_drawPad);
         }
 
         private void HandwritingCanvas_MouseEnter(object sender, MouseEventArgs e)
@@ -758,7 +749,6 @@ namespace UI
 
 
         #region ------------- INotifyPropertyChanged ---------------------------
-
         // add "INotifyPropertyChanged" to your class
         // add "using System.ComponentModel";
         // add "using System";
@@ -783,7 +773,6 @@ namespace UI
             if (handler != null)
                 handler(this, new PropertyChangedEventArgs(propertyName));
         }
-
         #endregion
     }
 }

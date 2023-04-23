@@ -20,6 +20,7 @@ namespace UI
 
         #region Training data
         private string _trainingDataDirectory = "./TrainingData";
+        private ITrainingDataManager _trainingDataManager;
         #endregion
 
         #region Network
@@ -90,12 +91,13 @@ namespace UI
         #region ------------- Training data -------------------------------------------------------
         private void TrainingDataInit()
         {
+            _trainingDataManager = new TrainingDataManager();
         }
 
         private void buttonLoadTrainingData_Click(object sender, RoutedEventArgs e)
         {
             string messages = "";
-            var success = _network.StartLoadingTrainingData(_trainingDataDirectory, OnLoadFinished, ref messages);
+            var success = _trainingDataManager.StartLoadingTrainingData(_trainingDataDirectory, OnLoadFinished, ref messages);
             if (!success)
             {
                 MessageBox.Show(messages);
@@ -117,13 +119,13 @@ namespace UI
 
         private void SetFieldsInTrainingDataBoxAfterLoad()
         {
-            textBoxImageSize.Text = $"{_network.TrainingImageSize} x {_network.TrainingImageSize}";
+            textBoxImageSize.Text = $"{_trainingDataManager.GetImageSize()} x {_trainingDataManager.GetImageSize()}";
             textBoxImageSize.IsEnabled = false;
-            textBoxImageCount.Text = $"{_network.TrainingImageCount}";
+            textBoxImageCount.Text = $"{_trainingDataManager.GetImageSize()}";
             textBoxImageCount.IsEnabled = false;
 
             sliderTrainingImage.Minimum = 0;
-            sliderTrainingImage.Maximum = _network.TrainingImageCount - 1;
+            sliderTrainingImage.Maximum = _trainingDataManager.GetImageCount() - 1;
             sliderTrainingImage.Value = 0;
             sliderTrainingImage_ValueChanged(null,null);
         }
@@ -141,25 +143,9 @@ namespace UI
         private void sliderTrainingImage_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             int imageIndex = Convert.ToInt32(sliderTrainingImage.Value);
-            CurrentTrainingImage.Source = CreateImageFromBytes(_network.GetTrainingImageById(imageIndex));
+            (var image, var label) = _trainingDataManager.GetTrainingImageAndLabel(imageIndex);
+            CurrentTrainingImage.Source = BitmapLibrary.CreateImageFromBytes(image);
             CurrentTrainingImageNumber.Content = imageIndex.ToString();
-        }
-
-        private BitmapSource CreateImageFromBytes(byte[] bytes)
-        {
-            PixelFormat pf = PixelFormats.Gray8; // means one byte per pixel
-            int width = 28;
-            int height = 28;
-            int rawStride = (width * pf.BitsPerPixel + 7) / 8;
-            var bitmapSource = BitmapSource.Create(width, height, 96, 96, pf, null, bytes, rawStride);
-            return bitmapSource;
-        }
-
-        private byte[] CreateBytesFromImage(BitmapSource image)
-        {
-            var bytes = new byte[28 * 28];
-            image.CopyPixels(bytes, 28, 0);
-            return bytes;
         }
         #endregion
         #region ------------- Structure -----------------------------------------------------------
@@ -169,7 +155,7 @@ namespace UI
 
         private void InitNetworkStructureAfterLoad()
         {
-            _network.Initialize(_network.TrainingImageSize * _network.TrainingImageSize, 3, 16, 10);
+            _network.Initialize(_trainingDataManager.GetImageSize() * _trainingDataManager.GetImageSize(), 3, 16, 10);
 
             textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer  .ToString();
             textBoxHiddenLayers         .Text = _network.HiddenLayersCount    .ToString();
@@ -259,7 +245,7 @@ namespace UI
         {
             foreach(var p2 in to)
                 foreach(var p1 in from)
-                     AddLine(canvasStructure, p1.X, p1.Y, p2.X, p2.Y, brush, 1);
+                     CanvasGraphicsLibrary.AddLine(canvasStructure, p1.X, p1.Y, p2.X, p2.Y, brush, 1);
         }
 
         private List<Point> DrawNCirclesVertically(double x, double y, double totalHeight, int count, Brush brush)
@@ -272,67 +258,27 @@ namespace UI
             for (int i = 0; i < count; i++)
             {
                 var ypos = y + (i * increment);
-                AddCircleAt(canvasStructure, x, ypos, 10, brush);
+                CanvasGraphicsLibrary.AddCircleAt(canvasStructure, x, ypos, 10, brush);
                 points.Add(new Point(x+5, ypos+5));
             }
             return points;
-        }
-
-        private void AddPoint(Canvas canvas, double x, double y, Brush brush)
-        {
-            var line = new Line() { X1 = 0, Y1 = 0, X2 = 1, Y2 = 1, StrokeThickness = 1, Stroke = brush, Fill = brush };
-            AddToCanvasAt(canvas, line, x, y); 
-        }
-
-        private void AddLine(Canvas canvas, double x1, double y1, double x2, double y2, Brush brush, double thickness)
-        {
-            if (x1 >= 0 && y1 >= 0 && x2 >= 0 && y2 >= 0)
-            {
-                var line = new Line() { X1 = 0, Y1 = 0, X2 = x2-x1, Y2 = y2-y1, StrokeThickness = thickness, Stroke = brush, Fill = brush };
-                AddToCanvasAt(canvas, line, x1, y1); 
-            }
-        }
-
-        private void AddTriangle(Canvas canvas)
-        {
-            var polygon = new Polygon() { StrokeThickness = 1,  Stroke = Brushes.Black, Fill = Brushes.DarkBlue };
-            polygon.Points.Add(new Point(0  ,100));
-            polygon.Points.Add(new Point(100,100));
-            polygon.Points.Add(new Point(50 ,0  ));
-            polygon.Points.Add(new Point(0  ,100));
-            AddToCanvasAt(canvas, polygon, 200, 50);
-        }
-
-        private void AddRectangle(Canvas canvas)
-        {
-            var polygon = new Polygon() { StrokeThickness = 1,  Stroke = Brushes.Black, Fill = Brushes.DarkRed };
-            polygon.Points.Add(new Point(0  ,100));
-            polygon.Points.Add(new Point(100,100));
-            polygon.Points.Add(new Point(100,  0));
-            polygon.Points.Add(new Point(0  ,  0));
-            AddToCanvasAt(canvas, polygon, 350, 50);
-        }
-
-        private void AddCircleAt(Canvas canvas, double x, double y, double radius, Brush brush)
-        {
-            var circle = new Ellipse() { Width = radius, Height = radius, StrokeThickness = 1,  Stroke = brush, Fill = brush };
-            AddToCanvasAt(canvas, circle, x, y);
-        }
-
-        private void AddToCanvasAt(Canvas canvas, Shape shape, double x, double y)
-        {
-            canvas.Children.Add(shape);
-            Canvas.SetLeft(shape, x);
-            Canvas.SetTop (shape, y);
         }
 
         private void buttonLoadNetwork_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                Cursor = Cursors.Wait;
                 _network.LoadNetwork(_trainingDataDirectory);
                 labelStatus.Content = "Network loaded.";
+                textBoxNeuronsInInputLayer  .Text    = _network.NeuronsInInputLayer  .ToString();
+                textBoxHiddenLayers         .Text    = _network.HiddenLayersCount    .ToString();
+                textBoxNeuronsInHiddenLayers.Text    = _network.NeuronsInHiddenLayers.ToString();
+                textBoxNeuronsInOutputLayer .Text    = _network.NeuronsInOutputLayers.ToString();
                 labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
+                DrawStructure();
+                _accuracyChart.Clear();
+                Cursor = Cursors.Arrow;
             }
             catch (Exception ex)
             {
@@ -412,7 +358,7 @@ namespace UI
             if (trainingSpeedEntered        ) _network.TrainingSpeed         = trainingSpeed;
 
             SetButtonsForTrainingProgress();
-            _network.StartTraining(onTrainingProgress, onTrainingFinished);
+            _network.StartTraining(_trainingDataManager, onTrainingProgress, onTrainingFinished);
         }
 
         private bool ValidateEntries(
@@ -467,7 +413,7 @@ namespace UI
         {
             Dispatcher.Invoke(() =>
             {
-                CurrentTrainingImage.Source = CreateImageFromBytes(currentTrainingImage);
+                CurrentTrainingImage.Source = BitmapLibrary.CreateImageFromBytes(currentTrainingImage);
                 labelStatus.Content = statusText;
                 labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
                 ShowCurrentImageClassification(currentOutput);
@@ -551,11 +497,11 @@ namespace UI
             if (!_network.IsInitialized)
                 return;
 
-            var renderTargetBitmap = GetBitmapFromCanvas(HandwritingCanvas, 28, 28);
+            var renderTargetBitmap = BitmapLibrary.GetBitmapFromCanvas(HandwritingCanvas, 28, 28);
             CurrentTrainingImage.Source = renderTargetBitmap;
 
-            System.Drawing.Bitmap drawingBitmap = ConvertRenderTargetBitmapToSystemDrawingBitmap(renderTargetBitmap);
-            var imageBytes = ConvertColorBitmapTo1dimensionalBytesArray(drawingBitmap);
+            System.Drawing.Bitmap drawingBitmap = BitmapLibrary.ConvertRenderTargetBitmapToSystemDrawingBitmap(renderTargetBitmap);
+            var imageBytes = BitmapLibrary.ConvertColorBitmapTo1dimensionalBytesArray(drawingBitmap);
             var outputNeurons = _network.Think(imageBytes);
             DisplayClassification(outputNeurons);
         }
@@ -565,8 +511,7 @@ namespace UI
             if (!_network.IsInitialized)
                 return;
             var bitmap = CurrentTrainingImage.Source as BitmapSource;
-            var imageBytes = CreateBytesFromImage(bitmap);
-            //var imageBytes = ConvertColorBitmapTo1dimensionalBytesArray(bitmap);
+            var imageBytes = BitmapLibrary.CreateBytesFromImage(bitmap);
             var outputNeurons = _network.Think(imageBytes);
             DisplayClassification(outputNeurons);
         }
@@ -589,161 +534,6 @@ namespace UI
             
             return results;
         }
-
-        private byte[] ConvertBitmapPointsToListOfBytes(RenderTargetBitmap bitmap)
-        {
-            var width  = Convert.ToInt32(bitmap.Width);
-            var height = Convert.ToInt32(bitmap.Height);
-
-            var result = new byte[width*height];
-            bitmap.CopyPixels(result, width, 0);
-            return result;
-        }
-
-        private RenderTargetBitmap GetBitmapFromCanvas(Canvas canvas, int width, int height)
-        {
-            var renderBitmap = new RenderTargetBitmap(width, height, 1/300, 1/300, PixelFormats.Pbgra32);
-
-            DrawingVisual visual = new DrawingVisual();
-            using (DrawingContext context = visual.RenderOpen())
-            {
-                VisualBrush brush = new VisualBrush(canvas);
-                context.DrawRectangle(brush, null, new Rect(new Point(), new Size(canvas.Width, canvas.Height)));
-            }
-            visual.Transform = new ScaleTransform(width / canvas.ActualWidth, height / canvas.ActualHeight);
-            renderBitmap.Render(visual);
-            return renderBitmap;
-        }
-
-        private System.Drawing.Bitmap ConvertColorBitmapToGrayscale(System.Drawing.Bitmap bitmap) 
-        {
-            var result = new System.Drawing.Bitmap(bitmap.Width, bitmap.Height, System.Drawing.Imaging.PixelFormat.Format8bppIndexed);
-            for (int x = 0; x < bitmap.Width; x++)
-            {
-                for (int y = 0; y < bitmap.Height; y++) 
-                {
-                    var grayColor = ConvertRgbValueToGrayscaleValue(bitmap.GetPixel(x, y));
-                    result.SetPixel(x, y, grayColor);
-                }
-            }
-            return result;
-        }
-
-        private byte[] ConvertColorBitmapTo1dimensionalBytesArray(System.Drawing.Bitmap bitmap) 
-        {
-            var result = new byte[bitmap.Width * bitmap.Height];
-            int i=0;
-
-            for (int x = 0; x < bitmap.Width; x++)
-                for (int y = 0; y < bitmap.Height; y++) 
-                    result[i++] = (byte)ConvertRgbValueToGrayscaleByte(bitmap.GetPixel(x, y));
-
-            return result;
-        }
-
-        private System.Drawing.Color ConvertRgbValueToGrayscaleValue(System.Drawing.Color color) 
-        {
-            var level = (byte)((color.R + color.G + color.B) / 3);
-            var result = System.Drawing.Color.FromArgb(level, level, level);
-            return result;
-        }
-
-        private byte ConvertRgbValueToGrayscaleByte(System.Drawing.Color color) 
-        {
-            var level = (byte)((color.R + color.G + color.B) / 3);
-            return level;
-        }
-
-        private byte[] ConvertGrayscaleBitmapTo1dimensionalBytesArray(System.Drawing.Bitmap bitmap) 
-        {
-            var result = new byte[bitmap.Width * bitmap.Height];
-            var i = 0;
-
-            for (int x = 0; x < bitmap.Width; x++)
-                for (int y = 0; y < bitmap.Height; y++)
-                    result[i++] = (byte)(bitmap.GetPixel(x, y).R / 255);
-            
-            return result;
-        }
-
-        private byte[,] ConvertGrayscaleBitmapTo2dimensionalBytesArray(System.Drawing.Bitmap bitmap) 
-        {
-            var result = new byte[bitmap.Width, bitmap.Height];
-
-            for (int x = 0; x < bitmap.Width; x++)
-                for (int y = 0; y < bitmap.Height; y++)
-                    result[x, y] = (byte)(bitmap.GetPixel(x, y).R / 255);
-            
-            return result;
-        }
-
-        private double[,] ConvertGrayscaleBitmapTo2dimensionalDoublesArray(System.Drawing.Bitmap bitmap) 
-        {
-            var result = new double[bitmap.Width, bitmap.Height];
-            
-            for (int x = 0; x < bitmap.Width; x++)
-                for (int y = 0; y < bitmap.Height; y++)
-                    result[x, y] = (double)bitmap.GetPixel(x, y).R / 255;
-            
-            return result;
-        }
-
-        private System.Drawing.Bitmap LoadBitmapFromFile(string filename)
-        {
-            return new System.Drawing.Bitmap(filename);
-        }
-
-        private System.Drawing.Bitmap ConvertRenderTargetBitmapToSystemDrawingBitmap(RenderTargetBitmap renderTargetBitmap)
-        {
-            using (MemoryStream fs = new MemoryStream())
-            {
-                BitmapEncoder encoder = new BmpBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-                encoder.Save(fs);
-                fs.Flush();
-                fs.Position = 0;
-
-                var bitmap = new System.Drawing.Bitmap(fs);
-                return bitmap;
-            }
-        }
-
-        private System.Drawing.Bitmap ConvertRenderTargetBitmapToSystemDrawingBitmapOld(RenderTargetBitmap renderTargetBitmap)
-        {
-            SaveBitmapToFile(renderTargetBitmap, @"handwriting.bmp");
-            var drawingBitmap = LoadBitmapFromFile(@"handwriting.bmp");
-            return drawingBitmap;
-        }
-
-        private void SaveBitmapToMemoryStream(RenderTargetBitmap renderBitmap, string path)
-        {
-            using (MemoryStream fs = new MemoryStream())
-            {
-                BitmapEncoder encoder = new BmpBitmapEncoder();
-                //BitmapEncoder encoder = new JpegBitmapEncoder();
-                //BitmapEncoder encoder = new TiffBitmapEncoder();
-                //BitmapEncoder encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-                encoder.Save(fs);
-                fs.Flush();
-                fs.Close();
-            }
-        }    
-
-        private void SaveBitmapToFile(RenderTargetBitmap renderBitmap, string path)
-        {
-            using (FileStream fs = new FileStream(path, FileMode.Create))
-            {
-                BitmapEncoder encoder = new BmpBitmapEncoder();
-                //BitmapEncoder encoder = new JpegBitmapEncoder();
-                //BitmapEncoder encoder = new TiffBitmapEncoder();
-                //BitmapEncoder encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-                encoder.Save(fs);
-                fs.Flush();
-                fs.Close();
-            }
-        }
         #endregion
         #endregion
 
@@ -755,6 +545,7 @@ namespace UI
 
         [NonSerialized]
         private PropertyChangedEventHandler? _propertyChanged;
+
         public event PropertyChangedEventHandler? PropertyChanged
         {
             add

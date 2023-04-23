@@ -10,11 +10,13 @@ namespace NeuralNetwork
 
         private class Callbacks
         {
+            public ITrainingDataManager TrainingDataManager;
             public TrainingProgressHandler OnProgress;
             public TrainingFinishedHandler OnFinished;
 
-            public Callbacks(TrainingProgressHandler onProgress, TrainingFinishedHandler onFinished)
+            public Callbacks(ITrainingDataManager trainingDataManager, TrainingProgressHandler onProgress, TrainingFinishedHandler onFinished)
             {
+                TrainingDataManager = trainingDataManager;
                 OnProgress = onProgress;
                 OnFinished = onFinished;
             }
@@ -24,11 +26,9 @@ namespace NeuralNetwork
 
 
         #region ------------- Properties ----------------------------------------------------------
-        // training data
-        public int      TrainingImageSize      { get; private set; } = 0;
-        public int      TrainingImageCount     { get; private set; } = 0;
-                                               
+                                              
         // Network structure                   
+        public bool     IsInitialized          => _structure is not null;
         public int      NeuronsInInputLayer    => _structure.NeuronsInInputLayer;  
         public int      HiddenLayersCount      => _structure.HiddenLayersCount;    
         public int      NeuronsInHiddenLayers  => _structure.NeuronsInHiddenLayers;
@@ -39,18 +39,12 @@ namespace NeuralNetwork
         public int      StopAfterIterations    { get; set; }
         public int      StopAfterAccurracy     { get; set; }
         public int      TotalTrainingIterations => _structure.TotalTrainingIterations;
-        public bool     IsInitialized => _structure is not null;
         #endregion
 
 
 
         #region ------------- Fields --------------------------------------------------------------
         private Structure _structure;
-        
-        // training data
-        private byte[][] _trainingImages;
-        private byte[]   _trainingLabels;
-        
         private bool     _trainingInProgress;
         private int      _numberOfGoodOutputs = 0;// kleine Statistik um die Akkuratheit zu messen
         private Thread   _trainingThread;
@@ -64,66 +58,15 @@ namespace NeuralNetwork
 
 
         #region ------------- Methods -------------------------------------------------------------
-        public bool StartLoadingTrainingData(string trainingDataDirectory, Action onLoadFinished, ref string messages)
-        {
-            var trainingFiles = new string[4];
-            trainingFiles[0] = @"train-images.idx3-ubyte";
-            trainingFiles[1] = @"train-labels.idx1-ubyte";
-            trainingFiles[2] = @"t10k-images.idx3-ubyte";
-            trainingFiles[3] = @"t10k-labels.idx1-ubyte";
-
-            messages = "";
-            foreach (var file in trainingFiles)
-            {
-                var fullFilename = Path.Combine(trainingDataDirectory, @"train-images.idx3-ubyte");
-                if (!File.Exists(fullFilename))
-                {
-                    messages += $"Cannot find {fullFilename}\n";
-                    return false;
-                }
-            }
-
-            Thread loadThread = new Thread(new ThreadStart(loadData));
-            loadThread.Start();
-
-            //_loadingInProgress = true;
-
-            void loadData()
-            {
-                //if (_loadingInProgress)
-                //{
-                    TrainingImageCount = 60000;
-                    TrainingImageSize = 28;
-                    _trainingImages = MnistTrainingDataLoader.LoadImageFile(Path.Combine(trainingDataDirectory, trainingFiles[0]), TrainingImageCount);
-                    _trainingLabels = MnistTrainingDataLoader.LoadLabelFile(Path.Combine(trainingDataDirectory, trainingFiles[1]), TrainingImageCount);
-                //}
-                //else
-                //{
-                //    _trainingIterations = 10000;
-                //    _trainingImages = MnistTrainingDataLoader.LoadImageFile(Path.Combine(_trainingDataDirectory, trainingFiles[2]), _trainingIterations);
-                //    _trainingLabels = MnistTrainingDataLoader.LoadLabelFile(Path.Combine(_trainingDataDirectory, trainingFiles[3]), _trainingIterations);
-                //}
-
-                onLoadFinished();
-            }
-
-            return true;
-        }
-
-        public byte[] GetTrainingImageById(int id)
-        {
-            return _trainingImages[id % TrainingImageCount];
-        }
-
         public void Initialize(int neuronsInInputLayer, int hiddenLayersCount, int neuronsInHiddenLayers, int neuronsInOutputLayer)
         {
             _structure = new Structure(neuronsInInputLayer, hiddenLayersCount, neuronsInHiddenLayers, neuronsInOutputLayer,
                 -0.5F, 0.5F, false, Neuron.ReLU);
         }
 
-        public void StartTraining(TrainingProgressHandler onProgress, TrainingFinishedHandler onFinished)
+        public void StartTraining(ITrainingDataManager trainingDataManager, TrainingProgressHandler onProgress, TrainingFinishedHandler onFinished)
         {
-            var callbacks = new Callbacks(onProgress, onFinished);
+            var callbacks = new Callbacks(trainingDataManager, onProgress, onFinished);
 
             if (_trainingThread is null)
                 _trainingThread = new Thread(new ParameterizedThreadStart(Training));
@@ -191,8 +134,9 @@ namespace NeuralNetwork
         #region ------------- Implementation ------------------------------------------------------
         private void Training(object data)
         {
-            TrainingProgressHandler onProgress = ((Callbacks)data).OnProgress;
-            TrainingFinishedHandler onFinished = ((Callbacks)data).OnFinished;
+            ITrainingDataManager    trainingDataManager = ((Callbacks)data).TrainingDataManager;
+            TrainingProgressHandler onProgress          = ((Callbacks)data).OnProgress;
+            TrainingFinishedHandler onFinished          = ((Callbacks)data).OnFinished;
             var iteration = 0;
             var totalSuccess = 0;
             int totalAccuracy = 0;
@@ -201,9 +145,7 @@ namespace NeuralNetwork
             _trainingInProgress = true;
             while (_trainingInProgress)
             {
-                var currentTrainingImageIndex = iteration % TrainingImageCount;
-                var currentTrainingImage = _trainingImages[currentTrainingImageIndex];
-                var expectedOutput       = _trainingLabels[currentTrainingImageIndex];
+                (var currentTrainingImage, var expectedOutput) = trainingDataManager.GetRandomTrainingImageAndLabel();
 
                 float[] output = _structure.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage));
                 var currentOutput = GetOutputClassification(output);
@@ -230,16 +172,16 @@ namespace NeuralNetwork
                 iteration++;
 
                 if ((iteration % 100) == 0)
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, currentTrainingImageIndex);
+                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
 
                 if (StopAfterIterations > 0 && iteration >= StopAfterIterations-1)
                 {
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, currentTrainingImageIndex);
+                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
                     break;
                 }
                 if (StopAfterAccurracy > 0 && iteration >= calculateAccuracyEvery & totalAccuracy >= StopAfterAccurracy)
                 {
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, currentTrainingImageIndex);
+                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
                     break;
                 }
             }

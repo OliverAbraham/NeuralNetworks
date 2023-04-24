@@ -82,6 +82,7 @@
         /// <summary>
         /// Adjust weights and biases of all neurons using the backpropagation algorithm
         /// </summary>
+        public void Backpropagate(float trainingSpeed, int outputNum, int expectedNum)
         {
             float[] targetOutput = new float[10];
             targetOutput[expectedNum] = 1.0F;
@@ -160,23 +161,6 @@
 
 
         #region ------------- Implementation ------------------------------------------------------
-
-        private float delta_i(Neuron neuron, Neuron[] prevLayerNeurons, float[] costs, int n)
-        {
-            if (neuron._type == Neuron.NeuronType.OutputNeuron)
-            {
-                return Delta_i(neuron, costs[n]);
-            }
-            else if (neuron._type == Neuron.NeuronType.HiddenNeuron)
-            {
-                return Delta_i(neuron, prevLayerNeurons, n);
-            }
-            else
-            {
-                return 0f; // we will never reach this, because we don't compute for input neurons
-            }
-        }
-
         private float DeltaW(float tweakAmount, float delta_i, float activation_j)
         {
             return tweakAmount * delta_i * activation_j;

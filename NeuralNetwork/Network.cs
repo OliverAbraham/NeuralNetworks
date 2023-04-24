@@ -152,9 +152,12 @@ namespace NeuralNetwork
 
                 var outputs = _structure.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage));
                 var currentOutput = GetClassification(outputs);
-
+                
                 var costs = CalculateCostVector(outputs, expectedOutput);
-                var cost = CalculateTotalCost(costs, expectedOutput);
+                var cost = CalculateTotalCost(costs);
+
+                if (cost > 0.2f)
+                    _structure.Backpropagate(TrainingSpeed, currentOutput, expectedOutput);
 
                 // Normalerweise trennt man die Prüfdaten von den Trainingsdaten,
                 // um zu gucken ob das Netz nicht nur auswendig lernt, sondern auch generalisiert
@@ -224,19 +227,9 @@ namespace NeuralNetwork
             return costs;
         }
 
-        private float CalculateTotalCost(float[] costs, int expectedOutputClassification)
+        private float CalculateTotalCost(float[] costs)
         {
-            float cost = 0.0F;
-
-            var targetOutputs = new float[_structure.NeuronsInOutputLayers];
-            targetOutputs[expectedOutputClassification] = 1.0F;
-
-            for (int i = 0; i < _structure.NeuronsInOutputLayers; i++)
-            {
-                cost += Math.Max(0, costs[i]) - targetOutputs[i];
-            }
-
-            return cost;
+            return costs.Select(x => Math.Abs(x)).Sum();
         }
 
         //private float[][][] GetSumOfChanges(float[][][] total, float[][][] current)

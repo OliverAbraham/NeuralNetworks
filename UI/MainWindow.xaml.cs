@@ -155,7 +155,7 @@ namespace UI
 
         private void InitNetworkStructureAfterLoad()
         {
-            _network.Initialize(_trainingDataManager.GetImageSize() * _trainingDataManager.GetImageSize(), 3, 16, 10);
+            _network.Initialize(_trainingDataManager.GetImageSize() * _trainingDataManager.GetImageSize(), 6, 16, 10);
 
             textBoxNeuronsInInputLayer  .Text = _network.NeuronsInInputLayer  .ToString();
             textBoxHiddenLayers         .Text = _network.HiddenLayersCount    .ToString();
@@ -303,12 +303,11 @@ namespace UI
         private void InitTrainingAfterLoad()
         {
             textBoxNeuronsInInputLayer.Text = _network.NeuronsInInputLayer.ToString();
-            textBoxStopAfterIterations.Text = "60000";
+            textBoxStopAfterIterations.Text = "1000000";
             labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
             buttonStartTraining.IsEnabled = true;
             buttonSaveNetwork.IsEnabled = true;
             _accuracyChart.Refresh();
-
         }
 
         private void TrainingInit()
@@ -538,7 +537,8 @@ namespace UI
         #endregion
 
 
-        #region ------------- INotifyPropertyChanged ---------------------------
+
+        #region ------------- INotifyPropertyChanged ----------------------------------------------
         // add "INotifyPropertyChanged" to your class
         // add "using System.ComponentModel";
         // add "using System";

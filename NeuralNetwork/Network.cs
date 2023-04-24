@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using System.Data;
+using System.Diagnostics;
 
 namespace NeuralNetwork
 {
@@ -97,7 +99,7 @@ namespace NeuralNetwork
             _structure.CopyWeightsAndBiasesFrom(data);
         }
 
-        public int GetOutputClassification(float[] networkOutputs)
+        public int GetClassification(float[] networkOutputs)
         {
             int num = 0;
             float highestFloat = 0.0F;
@@ -142,16 +144,17 @@ namespace NeuralNetwork
             int totalAccuracy = 0;
             int calculateAccuracyEvery = 100;
 
+            var stopwatch = Stopwatch.StartNew();
             _trainingInProgress = true;
             while (_trainingInProgress)
             {
                 (var currentTrainingImage, var expectedOutput) = trainingDataManager.GetRandomTrainingImageAndLabel();
 
-                float[] output = _structure.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage));
-                var currentOutput = GetOutputClassification(output);
-                float cost = CalculateCost(output, expectedOutput);
+                var outputs = _structure.Think(MnistTrainingDataLoader.ByteToFloat(currentTrainingImage));
+                var currentOutput = GetClassification(outputs);
 
-                _structure.Backpropagate(TrainingSpeed, currentOutput, expectedOutput);
+                var costs = CalculateCostVector(outputs, expectedOutput);
+                var cost = CalculateTotalCost(costs, expectedOutput);
 
                 // Normalerweise trennt man die Prüfdaten von den Trainingsdaten,
                 // um zu gucken ob das Netz nicht nur auswendig lernt, sondern auch generalisiert
@@ -172,16 +175,20 @@ namespace NeuralNetwork
                 iteration++;
 
                 if ((iteration % 100) == 0)
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
+                {
+                    var elapsed = stopwatch.ElapsedMilliseconds;
+                    UpdateUIWhileTraining(onProgress, outputs, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
+                    stopwatch.Restart();
+                }
 
                 if (StopAfterIterations > 0 && iteration >= StopAfterIterations-1)
                 {
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
+                    UpdateUIWhileTraining(onProgress, outputs, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
                     break;
                 }
                 if (StopAfterAccurracy > 0 && iteration >= calculateAccuracyEvery & totalAccuracy >= StopAfterAccurracy)
                 {
-                    UpdateUIWhileTraining(onProgress, output, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
+                    UpdateUIWhileTraining(onProgress, outputs, cost, percent, totalAccuracy, iteration, currentTrainingImage, 0);
                     break;
                 }
             }
@@ -201,16 +208,32 @@ namespace NeuralNetwork
             onProgress(currentOutput, currentStatus, currentTrainingImage, currentTrainingImageIndex, totalAccuracy);
         }
 
-        private float CalculateCost(float[] networkOutputs, int targetOutput)
+        private float[] CalculateCostVector(float[] currentOutputs, int expectedOutputClassification)
+        {
+            var costs = new float[currentOutputs.Length];
+
+            var expectedOutputs = new float[currentOutputs.Length];
+            expectedOutputs[expectedOutputClassification] = 1.0F;
+
+            for (int i = 0; i < currentOutputs.Length; i++)
+            {
+                if (currentOutputs[i] < 1f)
+                    costs[i] += expectedOutputs[i] - currentOutputs[i];
+            }
+
+            return costs;
+        }
+
+        private float CalculateTotalCost(float[] costs, int expectedOutputClassification)
         {
             float cost = 0.0F;
 
-            float[] targetOutputs = new float[networkOutputs.Length];
-            targetOutputs[targetOutput] = 1.0F;
+            var targetOutputs = new float[_structure.NeuronsInOutputLayers];
+            targetOutputs[expectedOutputClassification] = 1.0F;
 
-            for (int i = 0; i < networkOutputs.Length; i++)
+            for (int i = 0; i < _structure.NeuronsInOutputLayers; i++)
             {
-                cost += Math.Max(0, networkOutputs[i]) - targetOutputs[i];
+                cost += Math.Max(0, costs[i]) - targetOutputs[i];
             }
 
             return cost;

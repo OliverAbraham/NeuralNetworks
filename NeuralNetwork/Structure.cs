@@ -1,6 +1,6 @@
 ﻿namespace NeuralNetwork
 {
-    public class Structure : ICloneable
+    public class Structure
     {
         #region ------------- Properties ----------------------------------------------------------
         public int          NeuronsInInputLayer     { get; set; }
@@ -79,7 +79,9 @@
             return results;
         }
 
-        public void Backpropagate(float trainingSpeed, int outputNum, int expectedNum)
+        /// <summary>
+        /// Adjust weights and biases of all neurons using the backpropagation algorithm
+        /// </summary>
         {
             float[] targetOutput = new float[10];
             targetOutput[expectedNum] = 1.0F;
@@ -158,6 +160,23 @@
 
 
         #region ------------- Implementation ------------------------------------------------------
+
+        private float delta_i(Neuron neuron, Neuron[] prevLayerNeurons, float[] costs, int n)
+        {
+            if (neuron._type == Neuron.NeuronType.OutputNeuron)
+            {
+                return Delta_i(neuron, costs[n]);
+            }
+            else if (neuron._type == Neuron.NeuronType.HiddenNeuron)
+            {
+                return Delta_i(neuron, prevLayerNeurons, n);
+            }
+            else
+            {
+                return 0f; // we will never reach this, because we don't compute for input neurons
+            }
+        }
+
         private float DeltaW(float tweakAmount, float delta_i, float activation_j)
         {
             return tweakAmount * delta_i * activation_j;
@@ -215,7 +234,7 @@
                     neurons[i]._layer              = layerNo;
                     neurons[i]._layerIndex         = i;
                     neurons[i]._inputs             = new Neuron[NeuronsInInputLayer];
-                    neurons[i].Weights             = new float[NeuronsInHiddenLayers];
+                    neurons[i].Weights             = new float[NeuronsInHiddenLayers]; // unnecessary! Input neurons don't have weights and biases
                     neurons[i]._activationFunction = _activationFunction;
                 }
                 _inputs = neurons;
@@ -311,6 +330,7 @@
                     
                     currentNeuron.Bias = RandomNumberGenerator.Between(-10, 10);
 
+                    if (layer > 0)
                     for (int i = 0; i < currentNeuron.Weights.Length; i++)
                     {
                         currentNeuron.Weights[i] = RandomNumberGenerator.Between(min, max) / 100.0F;
@@ -321,52 +341,52 @@
             }
         }
 
-        public object Clone()
-        {
-            Structure brain                = new Structure();
-            brain._inputs               = new Neuron[this._inputs.Length];
-            brain._outputs              = new Neuron[this._outputs.Length];
-            brain._hiddenLayers         = new Neuron[this._hiddenLayers.Length][];
-            brain.AllLayers            = new Neuron[this._hiddenLayers.Length + 2][];
-            brain._activationFunction   = this._activationFunction;
-
-
-            for (int i = 0; i < _inputs.Length; i++)
-            {
-                brain._inputs[i] = this._inputs[i].Clone() as Neuron;
-            }
-
-            for (int i = 0; i < _outputs.Length; i++)
-            {
-                brain._outputs[i] = this._outputs[i].Clone() as Neuron;
-            }
-
-            for (int iter = 0; iter < _hiddenLayers.Length; iter++)
-            {
-                brain._hiddenLayers[iter] = new Neuron[_hiddenLayers[iter].Length];
-
-                for (int i = 0; i < _hiddenLayers[iter].Length; i++)
-                {
-                    brain._hiddenLayers[iter][i] = this._hiddenLayers[iter][i].Clone() as Neuron;
-                }
-            }
-
-            Array.Copy(brain._hiddenLayers, 0, brain.AllLayers, 1, brain._hiddenLayers.Length);
-            brain.AllLayers[0] = brain._inputs;
-            brain.AllLayers[AllLayers.Length - 1] = brain._outputs;
-
-            for (int iter = 0; iter < brain.AllLayers.Length; iter++)
-            {
-                for (int i = 0; i < brain.AllLayers[iter].Length; i++)
-                {
-                    Neuron neuron = brain.AllLayers[iter][i];
-                    neuron._inputs = brain.AllLayers[Math.Max(0, iter - 1)];
-                    neuron._outputs = brain.AllLayers[Math.Min(brain.AllLayers.Length - 1, iter + 1)];
-                }
-            }
-
-            return brain;
-        }
+        //public object Clone()
+        //{
+        //    Structure brain                = new Structure();
+        //    brain._inputs               = new Neuron[this._inputs.Length];
+        //    brain._outputs              = new Neuron[this._outputs.Length];
+        //    brain._hiddenLayers         = new Neuron[this._hiddenLayers.Length][];
+        //    brain.AllLayers            = new Neuron[this._hiddenLayers.Length + 2][];
+        //    brain._activationFunction   = this._activationFunction;
+        //
+        //
+        //    for (int i = 0; i < _inputs.Length; i++)
+        //    {
+        //        brain._inputs[i] = this._inputs[i].Clone() as Neuron;
+        //    }
+        //
+        //    for (int i = 0; i < _outputs.Length; i++)
+        //    {
+        //        brain._outputs[i] = this._outputs[i].Clone() as Neuron;
+        //    }
+        //
+        //    for (int iter = 0; iter < _hiddenLayers.Length; iter++)
+        //    {
+        //        brain._hiddenLayers[iter] = new Neuron[_hiddenLayers[iter].Length];
+        //
+        //        for (int i = 0; i < _hiddenLayers[iter].Length; i++)
+        //        {
+        //            brain._hiddenLayers[iter][i] = this._hiddenLayers[iter][i].Clone() as Neuron;
+        //        }
+        //    }
+        //
+        //    Array.Copy(brain._hiddenLayers, 0, brain.AllLayers, 1, brain._hiddenLayers.Length);
+        //    brain.AllLayers[0] = brain._inputs;
+        //    brain.AllLayers[AllLayers.Length - 1] = brain._outputs;
+        //
+        //    for (int iter = 0; iter < brain.AllLayers.Length; iter++)
+        //    {
+        //        for (int i = 0; i < brain.AllLayers[iter].Length; i++)
+        //        {
+        //            Neuron neuron = brain.AllLayers[iter][i];
+        //            neuron._inputs = brain.AllLayers[Math.Max(0, iter - 1)];
+        //            neuron._outputs = brain.AllLayers[Math.Min(brain.AllLayers.Length - 1, iter + 1)];
+        //        }
+        //    }
+        //
+        //    return brain;
+        //}
         #endregion
     }
 }

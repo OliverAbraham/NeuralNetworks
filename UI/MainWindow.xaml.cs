@@ -521,7 +521,7 @@ namespace UI
             string outputNeuronsAsString = ConvertArrayToString(outputNeurons);
 
             labelClassicationResults.Content = outputNeuronsAsString;
-            labelClassification.Content = _network.GetOutputClassification(outputNeurons).ToString();
+            labelClassification.Content = _network.GetClassification(outputNeurons).ToString();
             _drawPad.ResetImage();
         }
 

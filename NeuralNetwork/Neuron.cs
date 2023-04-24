@@ -1,5 +1,8 @@
 ﻿namespace NeuralNetwork
 {
+    /// <summary>
+    /// Represents a Neuron in the Neural Network
+    /// </summary>
     public class Neuron : ICloneable
     {
         #region ------------- Types and constants -------------------------------------------------
@@ -77,11 +80,17 @@
             }
         }
 
-        public static float Sigmoid(float x) // sigmoid function
+        /// <summary>
+        /// sigmoid activation function
+        /// </summary>
+        public static float Sigmoid(float x) 
         {
             return (float)(1 / (1 + Math.Exp(-x)));
         }
 
+        /// <summary>
+        /// ReLU activation function (rectified linear unit)
+        /// </summary>
         public static float ReLU(float x)
         {
             return (float)Math.Max(0, x);

@@ -13,6 +13,9 @@ using System.Windows.Shapes;
 
 namespace UI
 {
+    /// <summary>
+    /// User interface for the Neural network explorer
+    /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         #region ------------- Fields --------------------------------------------------------------

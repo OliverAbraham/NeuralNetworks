@@ -1,8 +1,15 @@
 ﻿namespace NeuralNetwork
 {
+    /// <summary>
+    /// Loads MNIST training data files. 
     public static class MnistTrainingDataLoader
     {
         #region ------------- Methods -------------------------------------------------------------
+
+        /// <summary>
+        /// Load a training data file, containing images.
+        /// Every entry is a grayscale image of 28x28 pixels.
+        /// </summary>
         public static byte[][] LoadImageFile(string filePath, int amount)
         {
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open))
@@ -32,6 +39,10 @@
             }
         }
 
+        /// <summary>
+        /// Loads a label file.
+        /// Every entry is a byte, containing the digital value 0-9 for the digital representation of an image
+        /// </summary>
         public static byte[] LoadLabelFile(string filePath, int amount)
         {
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open))

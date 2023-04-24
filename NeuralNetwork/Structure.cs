@@ -1,5 +1,9 @@
 ﻿namespace NeuralNetwork
 {
+    /// <summary>
+    /// Represents the structure of a Neural Network.
+    /// The structure contains an input layer, a number of hidden layers and an output layer.
+    /// </summary>
     public class Structure
     {
         #region ------------- Properties ----------------------------------------------------------
@@ -110,38 +114,6 @@
                 }
             }
         }
-
-        //public void BackpropagateOld(float trainingSpeed, int outputNum, int expectedNum)
-        //{
-        //    Neuron[][] layers = new Neuron[brain.HiddenLayers.Length + 1][];
-        //    Array.Copy(brain.AllLayers, 1, layers, 0, brain.AllLayers.Length - 1);
-        //    
-        //    float[] targetOutput = new float[10];
-        //    targetOutput[expectedNum] = 1.0F;
-        //
-        //    for (int layer = layers.Length - 1; layer >= 0; layer--)
-        //    {
-        //        Neuron[] layerNeurons = layers[layer];
-        //
-        //        for (int n = 0; n < layerNeurons.Length; n++)
-        //        {
-        //            Neuron neuron = layerNeurons[n];
-        //
-        //            for (int w = 0; w < neuron.Weights.Length; w++)
-        //            {
-        //                float delta_i = (neuron.Type == Neuron.NeuronType.HiddenNeuron)
-        //                    ? Delta_i(layers, layer, n, targetOutput)
-        //                    : Delta_i(neuron, targetOutput[n], Neuron.ReLU(neuron.Activation));
-        //
-        //                float activation_j = brain.AllLayers[layer][w].Activation;
-        //                float deltaW = DeltaW(trainingSpeed, delta_i, activation_j);
-        //
-        //                if (!float.IsNaN(deltaW))
-        //                    neuron.Weights[w] += deltaW;
-        //            }
-        //        }
-        //    }
-        //}
 
         public void CopyWeightsAndBiasesFrom(Structure data)
         {
@@ -324,53 +296,6 @@
                 }
             }
         }
-
-        //public object Clone()
-        //{
-        //    Structure brain                = new Structure();
-        //    brain._inputs               = new Neuron[this._inputs.Length];
-        //    brain._outputs              = new Neuron[this._outputs.Length];
-        //    brain._hiddenLayers         = new Neuron[this._hiddenLayers.Length][];
-        //    brain.AllLayers            = new Neuron[this._hiddenLayers.Length + 2][];
-        //    brain._activationFunction   = this._activationFunction;
-        //
-        //
-        //    for (int i = 0; i < _inputs.Length; i++)
-        //    {
-        //        brain._inputs[i] = this._inputs[i].Clone() as Neuron;
-        //    }
-        //
-        //    for (int i = 0; i < _outputs.Length; i++)
-        //    {
-        //        brain._outputs[i] = this._outputs[i].Clone() as Neuron;
-        //    }
-        //
-        //    for (int iter = 0; iter < _hiddenLayers.Length; iter++)
-        //    {
-        //        brain._hiddenLayers[iter] = new Neuron[_hiddenLayers[iter].Length];
-        //
-        //        for (int i = 0; i < _hiddenLayers[iter].Length; i++)
-        //        {
-        //            brain._hiddenLayers[iter][i] = this._hiddenLayers[iter][i].Clone() as Neuron;
-        //        }
-        //    }
-        //
-        //    Array.Copy(brain._hiddenLayers, 0, brain.AllLayers, 1, brain._hiddenLayers.Length);
-        //    brain.AllLayers[0] = brain._inputs;
-        //    brain.AllLayers[AllLayers.Length - 1] = brain._outputs;
-        //
-        //    for (int iter = 0; iter < brain.AllLayers.Length; iter++)
-        //    {
-        //        for (int i = 0; i < brain.AllLayers[iter].Length; i++)
-        //        {
-        //            Neuron neuron = brain.AllLayers[iter][i];
-        //            neuron._inputs = brain.AllLayers[Math.Max(0, iter - 1)];
-        //            neuron._outputs = brain.AllLayers[Math.Min(brain.AllLayers.Length - 1, iter + 1)];
-        //        }
-        //    }
-        //
-        //    return brain;
-        //}
         #endregion
     }
 }

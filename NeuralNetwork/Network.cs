@@ -4,6 +4,9 @@ using System.Diagnostics;
 
 namespace NeuralNetwork
 {
+    /// <summary>
+    /// Represents a whole Neural Network, containg the Neurons and the learning functions.
+    /// </summary>
     public class Network
     {
         #region ------------- Internal types ------------------------------------------------------

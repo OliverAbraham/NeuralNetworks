@@ -1,22 +1,17 @@
 ﻿namespace NeuralNetwork
 {
+    /// <summary>
+    /// Loads MNIST training data files. 
+    /// Loads a couple of files, one with the training images, one with the classification labels for each image
+    /// Loading is accomplished with a background thread.
+    /// </summary>
     public class TrainingDataManager : ITrainingDataManager
     {
-        #region ------------- Properties ----------------------------------------------------------
-        #endregion
-
-
-
         #region ------------- Fields --------------------------------------------------------------
         private byte[][] _trainingImages;
         private byte[]   _trainingLabels;
         private int      TrainingImageSize;
         private int      TrainingImageCount;
-        #endregion
-
-
-
-        #region ------------- Init ----------------------------------------------------------------
         #endregion
 
 

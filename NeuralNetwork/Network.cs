@@ -44,6 +44,7 @@ namespace NeuralNetwork
         public int      StopAfterIterations    { get; set; }
         public int      StopAfterAccurracy     { get; set; }
         public int      TotalTrainingIterations => _structure.TotalTrainingIterations;
+        public float    DontBackpropagateUnder { get; set; } = 0.2f;
         #endregion
 
 
@@ -104,19 +105,19 @@ namespace NeuralNetwork
 
         public int GetClassification(float[] networkOutputs)
         {
-            int num = 0;
-            float highestFloat = 0.0F;
+            int classification = 0;
+            float outputMaximum = 0.0F;
 
             for (int i = 0; i < networkOutputs.Length; i++)
             {
-                if (networkOutputs[i] > highestFloat)
+                if (networkOutputs[i] > outputMaximum)
                 {
-                    highestFloat = networkOutputs[i];
-                    num = i;
+                    outputMaximum = networkOutputs[i];
+                    classification = i;
                 }
             }
 
-            return num;
+            return classification;
         }
 
         public float[] Think(byte[] image)
@@ -159,7 +160,7 @@ namespace NeuralNetwork
                 var costs = CalculateCostVector(outputs, expectedOutput);
                 var cost = CalculateTotalCost(costs);
 
-                if (cost > 0.2f)
+                if (cost > DontBackpropagateUnder)
                     _structure.Backpropagate(TrainingSpeed, currentOutput, expectedOutput);
 
                 // Normalerweise trennt man die Prüfdaten von den Trainingsdaten,

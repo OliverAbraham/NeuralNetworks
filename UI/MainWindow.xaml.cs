@@ -308,6 +308,7 @@ namespace UI
             textBoxNeuronsInInputLayer.Text = _network.NeuronsInInputLayer.ToString();
             textBoxStopAfterIterations.Text = "1000000";
             labelTotalTrainingIterations.Content = _network.TotalTrainingIterations;
+            textBoxDontBackPropUnder.Text = (0.2f).ToString();
             buttonStartTraining.IsEnabled = true;
             buttonSaveNetwork.IsEnabled = true;
             _accuracyChart.Refresh();
@@ -341,12 +342,17 @@ namespace UI
             if (float.TryParse(textBoxTrainingSpeed.Text, out float trainingSpeed))
                 trainingSpeedEntered = true;
 
+            var dontBackpropagateUnderEntered = false;
+            if (float.TryParse(textBoxDontBackPropUnder.Text, out float dontBackpropagateUnder))
+                dontBackpropagateUnderEntered = true;
+
             if (!ValidateEntries(
                 hiddenLayersEntered, hiddenLayers,
                 neuronsInHiddenLayersEntered, neuronsInHiddenLayers,
                 stopAfterIterationsEntered, iterations,
                 stopAfterAccurracyEntered, accuracy,
                 trainingSpeedEntered, trainingSpeed,
+                dontBackpropagateUnderEntered, dontBackpropagateUnder,
                 out string messages))
             {
                 MessageBox.Show(messages);
@@ -355,9 +361,10 @@ namespace UI
 
             _network.StopAfterIterations = 0;
             _network.StopAfterAccurracy = 0;
-            if (stopAfterIterationsEntered  ) _network.StopAfterIterations   = iterations;
-            if (stopAfterAccurracyEntered   ) _network.StopAfterAccurracy    = accuracy;
-            if (trainingSpeedEntered        ) _network.TrainingSpeed         = trainingSpeed;
+            if (stopAfterIterationsEntered   ) _network.StopAfterIterations    = iterations;
+            if (stopAfterAccurracyEntered    ) _network.StopAfterAccurracy     = accuracy;
+            if (trainingSpeedEntered         ) _network.TrainingSpeed          = trainingSpeed;
+            if (dontBackpropagateUnderEntered) _network.DontBackpropagateUnder = dontBackpropagateUnder;
 
             SetButtonsForTrainingProgress();
             _network.StartTraining(_trainingDataManager, onTrainingProgress, onTrainingFinished);
@@ -369,6 +376,7 @@ namespace UI
             bool iterationsEntered, int iterations,
             bool accurracyEntered, int accuracy,
             bool trainingSpeedEntered, float trainingSpeed,
+            bool dontBackpropagateUnderEntered, float dontBackpropagateUnder,
             out string messages)
         {
             messages = "";
@@ -406,6 +414,11 @@ namespace UI
             if (trainingSpeedEntered && (trainingSpeed <= 0 || trainingSpeed > 1.0))
             {
                 messages = "please enter training speed as a number between 0 and 1!";
+                return false;
+            }
+            if (dontBackpropagateUnderEntered && (dontBackpropagateUnder < 0 || dontBackpropagateUnder > 0.9))
+            {
+                messages = "please enter the backpropagation thresholdbetween 0 and 0.9!";
                 return false;
             }
             return true;

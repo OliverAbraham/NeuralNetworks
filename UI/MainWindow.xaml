@@ -69,8 +69,9 @@
                 <Label  Content="Training speed"                       Margin="22,76,0,0"   VerticalAlignment="Top" HorizontalAlignment="Left" />
                 <TextBox Name="textBoxTrainingSpeed"                   Margin="232,80,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="120" HorizontalAlignment="Left" />
 
-                <Label   Name="labelStatusTxt" Content="Status:"       Margin="22,124,0,0"  Height="45"  Width="124" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                <Label   Name="labelStatus"                            Margin="22,146,29,0" Height="78"  VerticalAlignment="Top"/>
+                <Label  Content="Don't backpropagate under"            Margin="22,106,0,0"  VerticalAlignment="Top" HorizontalAlignment="Left" />
+                <TextBox Name="textBoxDontBackPropUnder"               Margin="232,110,0,0" Width="120" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" />
+                <Label   Name="labelStatus"                            Margin="22,142,29,0" Height="58"  VerticalAlignment="Top"/>
 
                 <Label   Name="labelAccuracy" Content="Accuracy:"      Margin="22,200,0,0"  Height="45"  Width="124" HorizontalAlignment="Left" VerticalAlignment="Top" />
                 <Canvas  Name="canvasAccuracy"                         Margin="0,238,0,167" Height="300" Width="339" HorizontalAlignment="Center" Background="#FFD3D8DD"/>
